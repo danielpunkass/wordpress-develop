@@ -1,0 +1,110 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		65B74FB11C777B8600E6D9F9 /* index.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = index.php; sourceTree = "<group>"; };
+		65B74FB21C777B8600E6D9F9 /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = license.txt; sourceTree = "<group>"; };
+		65B74FB31C777B8600E6D9F9 /* readme.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = readme.html; sourceTree = "<group>"; };
+		65B74FB41C777B8600E6D9F9 /* wp-activate.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-activate.php"; sourceTree = "<group>"; };
+		65B74FB51C777B8600E6D9F9 /* wp-admin */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "wp-admin"; sourceTree = "<group>"; };
+		65B74FB61C777B8600E6D9F9 /* wp-blog-header.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-blog-header.php"; sourceTree = "<group>"; };
+		65B74FB71C777B8600E6D9F9 /* wp-comments-post.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-comments-post.php"; sourceTree = "<group>"; };
+		65B74FB81C777B8600E6D9F9 /* wp-config.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-config.php"; sourceTree = "<group>"; };
+		65B74FB91C777B8600E6D9F9 /* wp-content */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "wp-content"; sourceTree = "<group>"; };
+		65B74FBA1C777B8600E6D9F9 /* wp-cron.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-cron.php"; sourceTree = "<group>"; };
+		65B74FBB1C777B8600E6D9F9 /* wp-includes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "wp-includes"; sourceTree = "<group>"; };
+		65B74FBC1C777B8600E6D9F9 /* wp-links-opml.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-links-opml.php"; sourceTree = "<group>"; };
+		65B74FBD1C777B8600E6D9F9 /* wp-load.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-load.php"; sourceTree = "<group>"; };
+		65B74FBE1C777B8600E6D9F9 /* wp-login.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-login.php"; sourceTree = "<group>"; };
+		65B74FBF1C777B8600E6D9F9 /* wp-mail.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-mail.php"; sourceTree = "<group>"; };
+		65B74FC01C777B8600E6D9F9 /* wp-settings.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-settings.php"; sourceTree = "<group>"; };
+		65B74FC11C777B8600E6D9F9 /* wp-signup.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-signup.php"; sourceTree = "<group>"; };
+		65B74FC21C777B8600E6D9F9 /* wp-trackback.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = "wp-trackback.php"; sourceTree = "<group>"; };
+		65B74FC31C777B8600E6D9F9 /* xmlrpc.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; path = xmlrpc.php; sourceTree = "<group>"; };
+		65B74FC41C77AC4500E6D9F9 /* tests */ = {isa = PBXFileReference; lastKnownFileType = folder; name = tests; path = ../tests; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		65B74FAA1C777B7000E6D9F9 = {
+			isa = PBXGroup;
+			children = (
+				65B74FB11C777B8600E6D9F9 /* index.php */,
+				65B74FB21C777B8600E6D9F9 /* license.txt */,
+				65B74FB31C777B8600E6D9F9 /* readme.html */,
+				65B74FB41C777B8600E6D9F9 /* wp-activate.php */,
+				65B74FB51C777B8600E6D9F9 /* wp-admin */,
+				65B74FB61C777B8600E6D9F9 /* wp-blog-header.php */,
+				65B74FB71C777B8600E6D9F9 /* wp-comments-post.php */,
+				65B74FB81C777B8600E6D9F9 /* wp-config.php */,
+				65B74FB91C777B8600E6D9F9 /* wp-content */,
+				65B74FBA1C777B8600E6D9F9 /* wp-cron.php */,
+				65B74FBB1C777B8600E6D9F9 /* wp-includes */,
+				65B74FBC1C777B8600E6D9F9 /* wp-links-opml.php */,
+				65B74FBD1C777B8600E6D9F9 /* wp-load.php */,
+				65B74FBE1C777B8600E6D9F9 /* wp-login.php */,
+				65B74FBF1C777B8600E6D9F9 /* wp-mail.php */,
+				65B74FC01C777B8600E6D9F9 /* wp-settings.php */,
+				65B74FC11C777B8600E6D9F9 /* wp-signup.php */,
+				65B74FC21C777B8600E6D9F9 /* wp-trackback.php */,
+				65B74FC31C777B8600E6D9F9 /* xmlrpc.php */,
+				65B74FC41C77AC4500E6D9F9 /* tests */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		65B74FAB1C777B7000E6D9F9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0730;
+			};
+			buildConfigurationList = 65B74FAE1C777B7000E6D9F9 /* Build configuration list for PBXProject "WordPressOrg" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 65B74FAA1C777B7000E6D9F9;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		65B74FAF1C777B7000E6D9F9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		65B74FB01C777B7000E6D9F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		65B74FAE1C777B7000E6D9F9 /* Build configuration list for PBXProject "WordPressOrg" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65B74FAF1C777B7000E6D9F9 /* Debug */,
+				65B74FB01C777B7000E6D9F9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 65B74FAB1C777B7000E6D9F9 /* Project object */;
+}
