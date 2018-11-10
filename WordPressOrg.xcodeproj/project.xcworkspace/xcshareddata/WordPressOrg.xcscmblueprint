@@ -1,0 +1,81 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A0BFADFCEFC108FC97174DBE3A133A369FB5F1ED+++E760D8B",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "b8457f37-d9ea-0310-8a92-e5e31aec5664++6704+++80DBBB6" : {
+      "DVTSourceControlWorkingCopyRepositoryBranchesLocationKey" : "akismet\/branches",
+      "DVTSourceControlWorkingCopyRepositoryTagsLocationKey" : "akismet\/tags",
+      "DVTSourceControlWorkingCopyRepositoryPrimaryBranchLocationKey" : "akismet\/trunk"
+    },
+    "b8457f37-d9ea-0310-8a92-e5e31aec5664++6819+++3BD6454" : {
+      "DVTSourceControlWorkingCopyRepositoryBranchesLocationKey" : "wordpress-importer\/branches",
+      "DVTSourceControlWorkingCopyRepositoryTagsLocationKey" : "wordpress-importer\/tags",
+      "DVTSourceControlWorkingCopyRepositoryPrimaryBranchLocationKey" : "wordpress-importer\/trunk"
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "5B748301DC37B22FEE32580EE4EF52ECF87691F0+++3D1B495" : 0,
+    "A0BFADFCEFC108FC97174DBE3A133A369FB5F1ED+++E760D8B" : 0,
+    "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++3EF4799" : 0,
+    "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++554F4A3" : 0,
+    "b8457f37-d9ea-0310-8a92-e5e31aec5664++6704+++80DBBB6" : 9223372036854775807,
+    "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++1F6C44A" : 0,
+    "b8457f37-d9ea-0310-8a92-e5e31aec5664++6819+++3BD6454" : 9223372036854775807,
+    "B12598C34B610649078908E41943D556CD6DA8BA+++0BD71A1" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "75FCC508-53FC-4205-8A10-D5F450E2B551",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "5B748301DC37B22FEE32580EE4EF52ECF87691F0+++3D1B495" : "wordpress-develop\/src\/wp-content\/plugins\/Basic-Auth\/",
+    "A0BFADFCEFC108FC97174DBE3A133A369FB5F1ED+++E760D8B" : "wordpress-develop\/",
+    "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++3EF4799" : "wordpress-develop\/src\/wp-content\/plugins\/WP-API\/core\/",
+    "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++554F4A3" : "wordpress-develop\/src\/wp-content\/plugins\/WP-API\/",
+    "b8457f37-d9ea-0310-8a92-e5e31aec5664++6704+++80DBBB6" : "wordpress-develop\/src\/wp-content\/plugins\/akismet\/",
+    "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++1F6C44A" : "wordpress-develop\/src\/wp-content\/plugins\/WP-API\/",
+    "b8457f37-d9ea-0310-8a92-e5e31aec5664++6819+++3BD6454" : "wordpress-develop\/tests\/phpunit\/data\/plugins\/wordpress-importer\/",
+    "B12598C34B610649078908E41943D556CD6DA8BA+++0BD71A1" : ".."
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "WordPressOrg",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "src\/WordPressOrg.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/WP-API\/api-core",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++1F6C44A"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/WP-API\/api-core",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++3EF4799"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:danielpunkass\/WP-API.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "1E93B0B0AC9B5A3A57D2144A544668F581F3122B+++554F4A3"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:WP-API\/Basic-Auth.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "5B748301DC37B22FEE32580EE4EF52ECF87691F0+++3D1B495"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "git:\/\/develop.git.wordpress.org\/",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A0BFADFCEFC108FC97174DBE3A133A369FB5F1ED+++E760D8B"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "git:\/\/github.com\/Varying-Vagrant-Vagrants\/VVV.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B12598C34B610649078908E41943D556CD6DA8BA+++0BD71A1"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "http:\/\/plugins.svn.wordpress.org",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "b8457f37-d9ea-0310-8a92-e5e31aec5664++6704+++80DBBB6"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/plugins.svn.wordpress.org",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "b8457f37-d9ea-0310-8a92-e5e31aec5664++6819+++3BD6454"
+    }
+  ]
+}
