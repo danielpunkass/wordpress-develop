@@ -105,7 +105,7 @@ if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 	$editable_extensions = wp_get_plugin_file_editable_extensions( $plugin );
 
 if ( ! is_file( $real_file ) ) {
-	wp_die( sprintf( '<p>%s</p>', __( 'No such file exists! Double check the name and try again.' ) ) );
+	wp_die( sprintf( '<p>%s</p>', __( 'File does not exist! Please double check the name and try again.' ) ) );
 } else {
 	// Get the extension of the file
 	if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
@@ -140,7 +140,7 @@ if ( ! is_file( $real_file ) ) {
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 		'<p>' . __( '<a href="https://codex.wordpress.org/Plugins_Editor_Screen">Documentation on Editing Plugins</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://codex.wordpress.org/Writing_a_Plugin">Documentation on Writing Plugins</a>' ) . '</p>' .
-		'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+		'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 	);
 
 	$settings = array(
@@ -265,7 +265,7 @@ foreach ( $plugins as $plugin_key => $a_plugin ) {
 			<input type="hidden" name="plugin" value="<?php echo esc_attr( $plugin ); ?>" />
 		</div>
 		<?php if ( ! empty( $docs_select ) ) : ?>
-		<div id="documentation" class="hide-if-no-js"><label for="docs-list"><?php _e( 'Documentation:' ); ?></label> <?php echo $docs_select; ?> <input type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?> " onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" /></div>
+		<div id="documentation" class="hide-if-no-js"><label for="docs-list"><?php _e( 'Documentation:' ); ?></label> <?php echo $docs_select; ?> <input disabled id="docs-lookup" type="button" class="button" value="<?php esc_attr_e( 'Look Up' ); ?> " onclick="if ( '' != jQuery('#docs-list').val() ) { window.open( 'https://api.wordpress.org/core/handbook/1.0/?function=' + escape( jQuery( '#docs-list' ).val() ) + '&amp;locale=<?php echo urlencode( get_user_locale() ); ?>&amp;version=<?php echo urlencode( get_bloginfo( 'version' ) ); ?>&amp;redirect=true'); }" /></div>
 		<?php endif; ?>
 <?php if ( is_writeable( $real_file ) ) : ?>
 	<div class="editor-notices">
@@ -316,6 +316,6 @@ if ( ! in_array( 'plugin_editor_notice', $dismissed_pointers, true ) ) :
 	</div>
 </div>
 	<?php
-endif; // editor warning notice
+endif; // Editor warning notice.
 
 include( ABSPATH . 'wp-admin/admin-footer.php' );

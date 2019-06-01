@@ -572,6 +572,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$legacy_text_examples = array(
 			'<span class="hello"></span>',
 			'<blockquote>Quote <footer>Citation</footer></blockquote>',
+			'<img src=\"http://example.com/img.jpg\" border=\"0\" title=\"Example\" /></a>',
 			'<span></span>',
 			"<ul>\n<li><a href=\"#\" class=\"location\"></a>List Item 1</li>\n<li><a href=\"#\" class=\"location\"></a>List Item 2</li>\n</ul>",
 			'<a href="#" class="map"></a>',
@@ -999,5 +1000,59 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertContains( '<script type="text/html" id="tmpl-widget-text-control-fields">', $output );
+	}
+
+	/**
+	 * Ensure that rel="noopener noreferrer" is added to links with a target.
+	 *
+	 * @ticket 46421
+	 */
+	function test_render_links_with_target() {
+		$widget = new WP_Widget_Text();
+
+		$text = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
+
+		$args = array(
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+			'before_widget' => '',
+			'after_widget'  => '',
+		);
+
+		$instance = array(
+			'title' => 'Foo',
+			'text'  => $text,
+		);
+
+		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+
+		$this->assertContains( 'rel="noopener noreferrer"', $output );
+	}
+
+	/**
+	 * Ensure that rel="noopener noreferrer" is not added to links without a target.
+	 *
+	 * @ticket 46421
+	 */
+	function test_render_links_without_target() {
+		$widget = new WP_Widget_Text();
+
+		$text = 'Test content with an internal <a href="/">link</a>.';
+
+		$args = array(
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+			'before_widget' => '',
+			'after_widget'  => '',
+		);
+
+		$instance = array(
+			'title' => 'Foo',
+			'text'  => $text,
+		);
+
+		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+
+		$this->assertNotContains( 'rel="noopener noreferrer"', $output );
 	}
 }

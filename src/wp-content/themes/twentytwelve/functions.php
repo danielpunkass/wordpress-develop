@@ -6,11 +6,13 @@
  * in the theme as custom template tags. Others are attached to action and
  * filter hooks in WordPress to change core functionality.
  *
- * When using a child theme (see https://codex.wordpress.org/Theme_Development and
- * https://codex.wordpress.org/Child_Themes), you can override certain functions
- * (those wrapped in a function_exists() call) by defining them first in your child theme's
- * functions.php file. The child theme's functions.php file is included before the parent
- * theme's file, so the child theme functions would be used.
+ * When using a child theme you can override certain functions (those wrapped
+ * in a function_exists() call) by defining them first in your child theme's
+ * functions.php file. The child theme's functions.php file is included before
+ * the parent theme's file, so the child theme functions would be used.
+ *
+ * @link https://codex.wordpress.org/Theme_Development
+ * @link https://developer.wordpress.org/themes/advanced-topics/child-themes/
  *
  * Functions that are not pluggable (not wrapped in function_exists()) are instead attached
  * to a filter or action hook.
@@ -54,6 +56,47 @@ function twentytwelve_setup() {
 
 	// This theme styles the visual editor with editor-style.css to match the theme style.
 	add_editor_style();
+
+	// Load regular editor styles into the new block-based editor.
+	add_theme_support( 'editor-styles' );
+
+	// Load default block styles.
+	add_theme_support( 'wp-block-styles' );
+
+	// Add support for responsive embeds.
+	add_theme_support( 'responsive-embeds' );
+
+	// Add support for custom color scheme.
+	add_theme_support(
+		'editor-color-palette',
+		array(
+			array(
+				'name'  => __( 'Blue', 'twentytwelve' ),
+				'slug'  => 'blue',
+				'color' => '#21759b',
+			),
+			array(
+				'name'  => __( 'Dark Gray', 'twentytwelve' ),
+				'slug'  => 'dark-gray',
+				'color' => '#444',
+			),
+			array(
+				'name'  => __( 'Medium Gray', 'twentytwelve' ),
+				'slug'  => 'medium-gray',
+				'color' => '#9f9f9f',
+			),
+			array(
+				'name'  => __( 'Light Gray', 'twentytwelve' ),
+				'slug'  => 'light-gray',
+				'color' => '#e6e6e6',
+			),
+			array(
+				'name'  => __( 'White', 'twentytwelve' ),
+				'slug'  => 'white',
+				'color' => '#fff',
+			),
+		)
+	);
 
 	// Adds RSS feed links to <head> for posts and comments.
 	add_theme_support( 'automatic-feed-links' );
@@ -122,8 +165,9 @@ function twentytwelve_get_font_url() {
 		}
 
 		$query_args = array(
-			'family' => 'Open+Sans:400italic,700italic,400,700',
-			'subset' => $subsets,
+			'family'  => urlencode( 'Open+Sans:400italic,700italic,400,700' ),
+			'subset'  => urlencode( $subsets ),
+			'display' => urlencode( 'fallback' ),
 		);
 		$font_url   = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
 	}
@@ -158,11 +202,27 @@ function twentytwelve_scripts_styles() {
 	// Loads our main stylesheet.
 	wp_enqueue_style( 'twentytwelve-style', get_stylesheet_uri() );
 
+	// Theme block stylesheet.
+	wp_enqueue_style( 'twentytwelve-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentytwelve-style' ), '20181230' );
+
 	// Loads the Internet Explorer specific stylesheet.
 	wp_enqueue_style( 'twentytwelve-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentytwelve-style' ), '20121010' );
 	$wp_styles->add_data( 'twentytwelve-ie', 'conditional', 'lt IE 9' );
 }
 add_action( 'wp_enqueue_scripts', 'twentytwelve_scripts_styles' );
+
+/**
+ * Enqueue styles for the block-based editor.
+ *
+ * @since Twenty Twelve 2.6
+ */
+function twentytwelve_block_editor_styles() {
+	// Block styles.
+	wp_enqueue_style( 'twentytwelve-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20181230' );
+	// Add custom fonts.
+	wp_enqueue_style( 'twentytwelve-fonts', twentytwelve_get_font_url(), array(), null );
+}
+add_action( 'enqueue_block_editor_assets', 'twentytwelve_block_editor_styles' );
 
 /**
  * Add preconnect for Google Fonts.
@@ -608,7 +668,6 @@ function twentytwelve_customize_preview_js() {
 }
 add_action( 'customize_preview_init', 'twentytwelve_customize_preview_js' );
 
-
 /**
  * Modifies tag cloud widget arguments to display all tags in the same font size
  * and use list format for better accessibility.
@@ -627,3 +686,21 @@ function twentytwelve_widget_tag_cloud_args( $args ) {
 	return $args;
 }
 add_filter( 'widget_tag_cloud_args', 'twentytwelve_widget_tag_cloud_args' );
+
+if ( ! function_exists( 'wp_body_open' ) ) :
+	/**
+	 * Fire the wp_body_open action.
+	 *
+	 * Added for backwards compatibility to support pre 5.2.0 WordPress versions.
+	 *
+	 * @since Twenty Twelve 3.0
+	 */
+	function wp_body_open() {
+		/**
+		 * Triggered after the opening <body> tag.
+		 *
+		 * @since Twenty Twelve 3.0
+		 */
+		do_action( 'wp_body_open' );
+	}
+endif;

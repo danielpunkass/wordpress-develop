@@ -459,6 +459,66 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Displays a formats drop-down for filtering items.
+	 *
+	 * @since 5.2.0
+	 * @access protected
+	 *
+	 * @param string $post_type Post type key.
+	 */
+	protected function formats_dropdown( $post_type ) {
+		/**
+		 * Filters whether to remove the 'Formats' drop-down from the post list table.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param bool $disable Whether to disable the drop-down. Default false.
+		 */
+		if ( apply_filters( 'disable_formats_dropdown', false ) ) {
+			return;
+		}
+
+		// Make sure the dropdown shows only formats with a post count greater than 0.
+		$used_post_formats = get_terms(
+			array(
+				'taxonomy'   => 'post_format',
+				'hide_empty' => true,
+			)
+		);
+
+		/*
+		 * Return if the post type doesn't have post formats, or there are no posts using formats,
+		 * or if we're in the trash.
+		 */
+		if ( ! is_object_in_taxonomy( $post_type, 'post_format' ) || ! $used_post_formats || $this->is_trash ) {
+			return;
+		}
+
+		$displayed_post_format = isset( $_GET['post_format'] ) ? $_GET['post_format'] : '';
+		?>
+		<label for="filter-by-format" class="screen-reader-text"><?php _e( 'Filter by post format' ); ?></label>
+		<select name="post_format" id="filter-by-format">
+			<option<?php selected( $displayed_post_format, '' ); ?> value=""><?php _e( 'All formats' ); ?></option>
+			<?php
+			foreach ( $used_post_formats as $used_post_format ) {
+				// Post format slug.
+				$slug = str_replace( 'post-format-', '', $used_post_format->slug );
+				// Pretty, translated version of the post format slug.
+				$pretty_name = get_post_format_string( $slug );
+				// Skip the standard post format.
+				if ( 'standard' === $slug ) {
+					continue;
+				}
+				?>
+				<option<?php selected( $displayed_post_format, $slug ); ?> value="<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $pretty_name ); ?></option>
+				<?php
+			}
+			?>
+		</select>
+		<?php
+	}
+
+	/**
 	 * @param string $which
 	 */
 	protected function extra_tablenav( $which ) {
@@ -470,6 +530,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			$this->months_dropdown( $this->screen->post_type );
 			$this->categories_dropdown( $this->screen->post_type );
+			$this->formats_dropdown( $this->screen->post_type );
 
 			/**
 			 * Fires before the Filter button on the Posts and Pages list tables.
@@ -943,20 +1004,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$pad = str_repeat( '&#8212; ', $this->current_level );
 		echo '<strong>';
 
-		$format = get_post_format( $post->ID );
-		if ( $format ) {
-			$label = get_post_format_string( $format );
-
-			$format_class = 'post-state-format post-format-icon post-format-' . $format;
-
-			$format_args = array(
-				'post_format' => $format,
-				'post_type'   => $post->post_type,
-			);
-
-			echo $this->get_edit_link( $format_args, $label . ':', $format_class );
-		}
-
 		$title = _draft_or_post_title();
 
 		if ( $can_edit_post && $post->post_status != 'trash' ) {
@@ -969,7 +1016,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$title
 			);
 		} else {
-			echo $pad . $title;
+			printf(
+				'<span>%s%s</span>',
+				$pad,
+				$title
+			);
 		}
 		_post_states( $post );
 
@@ -1126,7 +1177,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$taxonomy_object = get_taxonomy( $taxonomy );
 			$terms           = get_the_terms( $post->ID, $taxonomy );
 			if ( is_array( $terms ) ) {
-				$out = array();
+				$term_links = array();
 				foreach ( $terms as $t ) {
 					$posts_in_term_qv = array();
 					if ( 'post' != $post->post_type ) {
@@ -1140,10 +1191,23 @@ class WP_Posts_List_Table extends WP_List_Table {
 					}
 
 					$label = esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, $taxonomy, 'display' ) );
-					$out[] = $this->get_edit_link( $posts_in_term_qv, $label );
+
+					$term_links[] = $this->get_edit_link( $posts_in_term_qv, $label );
 				}
+
+				/**
+				 * Filters the links in `$taxonomy` column of edit.php.
+				 *
+				 * @since 5.2.0
+				 *
+				 * @param array  $term_links List of links to edit.php, filtered by the taxonomy term.
+				 * @param string $taxonomy   Taxonomy name.
+				 * @param array  $terms      Array of terms appearing in the post row.
+				 */
+				$term_links = apply_filters( 'post_column_taxonomy_links', $term_links, $taxonomy, $terms );
+
 				/* translators: used between list items, there is a space after the comma */
-				echo join( __( ', ' ), $out );
+				echo join( __( ', ' ), $term_links );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . $taxonomy_object->labels->no_terms . '</span>';
 			}
@@ -1268,12 +1332,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
 				__( 'Edit' )
 			);
-			$actions['inline hide-if-no-js'] = sprintf(
-				'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
-				/* translators: %s: post title */
-				esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
-				__( 'Quick&nbsp;Edit' )
-			);
+
+			if ( 'wp_block' !== $post->post_type ) {
+				$actions['inline hide-if-no-js'] = sprintf(
+					'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
+					/* translators: %s: post title */
+					esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $title ) ),
+					__( 'Quick&nbsp;Edit' )
+				);
+			}
 		}
 
 		if ( current_user_can( 'delete_post', $post->ID ) ) {
@@ -1326,6 +1393,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 					__( 'View' )
 				);
 			}
+		}
+
+		if ( 'wp_block' === $post->post_type ) {
+			$actions['export'] = sprintf(
+				'<button type="button" class="wp-list-reusable-blocks__export button-link" data-id="%s" aria-label="%s">%s</button>',
+				$post->ID,
+				/* translators: %s: post title */
+				esc_attr( sprintf( __( 'Export &#8220;%s&#8221; as JSON' ), $title ) ),
+				__( 'Export as JSON' )
+			);
 		}
 
 		if ( is_post_type_hierarchical( $post->post_type ) ) {
@@ -1458,15 +1535,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<span class="input-text-wrap"><input type="text" name="post_title" class="ptitle" value="" /></span>
 			</label>
 
-		<?php if ( $post_type_object->publicly_queryable ) : // publicly_queryable check ?>
+				<?php if ( is_post_type_viewable( $screen->post_type ) ) : // is_post_type_viewable check ?>
 
 			<label>
 				<span class="title"><?php _e( 'Slug' ); ?></span>
 				<span class="input-text-wrap"><input type="text" name="post_name" value="" /></span>
 			</label>
 
-			<?php
-	endif; // publicly_queryable check
+					<?php
+	endif; // is_post_type_viewable check
 	endif; // $bulk
 	endif; // post_type_supports title
 			?>
@@ -1480,39 +1557,39 @@ class WP_Posts_List_Table extends WP_List_Table {
 				<?php
 	endif; // $bulk
 
-if ( post_type_supports( $screen->post_type, 'author' ) ) :
-	$authors_dropdown = '';
+			if ( post_type_supports( $screen->post_type, 'author' ) ) :
+				$authors_dropdown = '';
 
-	if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) :
-		$users_opt = array(
-			'hide_if_only_one_author' => false,
-			'who'                     => 'authors',
-			'name'                    => 'post_author',
-			'class'                   => 'authors',
-			'multi'                   => 1,
-			'echo'                    => 0,
-			'show'                    => 'display_name_with_login',
-		);
-		if ( $bulk ) {
-			$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
-		}
+				if ( current_user_can( $post_type_object->cap->edit_others_posts ) ) :
+					$users_opt = array(
+						'hide_if_only_one_author' => false,
+						'who'                     => 'authors',
+						'name'                    => 'post_author',
+						'class'                   => 'authors',
+						'multi'                   => 1,
+						'echo'                    => 0,
+						'show'                    => 'display_name_with_login',
+					);
+					if ( $bulk ) {
+						$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
+					}
 
-		if ( $authors = wp_dropdown_users( $users_opt ) ) :
-			$authors_dropdown  = '<label class="inline-edit-author">';
-			$authors_dropdown .= '<span class="title">' . __( 'Author' ) . '</span>';
-			$authors_dropdown .= $authors;
-			$authors_dropdown .= '</label>';
-		endif;
-	endif; // authors
-	?>
+					if ( $authors = wp_dropdown_users( $users_opt ) ) :
+						$authors_dropdown  = '<label class="inline-edit-author">';
+						$authors_dropdown .= '<span class="title">' . __( 'Author' ) . '</span>';
+						$authors_dropdown .= $authors;
+						$authors_dropdown .= '</label>';
+					endif;
+				endif; // authors
+				?>
 
-	<?php
-	if ( ! $bulk ) {
-		echo $authors_dropdown;}
+				<?php
+				if ( ! $bulk ) {
+					echo $authors_dropdown;}
 	endif; // post_type_supports author
 
-if ( ! $bulk && $can_publish ) :
-	?>
+			if ( ! $bulk && $can_publish ) :
+				?>
 
 		<div class="inline-edit-group wp-clearfix">
 			<label class="alignleft">
@@ -1532,7 +1609,7 @@ if ( ! $bulk && $can_publish ) :
 				</label>
 			</div>
 
-	<?php endif; ?>
+				<?php endif; ?>
 
 		</div></fieldset>
 
@@ -1677,7 +1754,7 @@ if ( ! $bulk && $can_publish ) :
 			<?php else : // $bulk ?>
 
 			<div class="inline-edit-group wp-clearfix">
-			<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
+				<?php if ( post_type_supports( $screen->post_type, 'comments' ) ) : ?>
 				<label class="alignleft">
 					<input type="checkbox" name="comment_status" value="open" />
 					<span class="checkbox-title"><?php _e( 'Allow Comments' ); ?></span>
@@ -1690,7 +1767,7 @@ if ( ! $bulk && $can_publish ) :
 			<?php endif; ?>
 			</div>
 
-	<?php
+				<?php
 	endif; // $bulk
 	endif; // post_type_supports comments or pings
 			?>

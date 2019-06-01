@@ -690,6 +690,9 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
+	/**
+	 * @ticket 39122
+	 */
 	public function test_get_item_meta() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
 		$response = rest_get_server()->dispatch( $request );
@@ -698,24 +701,26 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_single', $meta );
-		$this->assertEquals( $meta['test_single'], '' );
+		$this->assertSame( $meta['test_single'], '' );
 		$this->assertArrayHasKey( 'test_multi', $meta );
-		$this->assertEquals( $meta['test_multi'], array() );
+		$this->assertSame( $meta['test_multi'], array() );
 		$this->assertArrayHasKey( 'test_cat_single', $meta );
-		$this->assertEquals( $meta['test_cat_single'], '' );
+		$this->assertSame( $meta['test_cat_single'], '' );
 		$this->assertArrayHasKey( 'test_cat_multi', $meta );
-		$this->assertEquals( $meta['test_cat_multi'], array() );
+		$this->assertSame( $meta['test_cat_multi'], array() );
 	}
 
+	/**
+	 * @ticket 39122
+	 */
 	public function test_get_item_meta_registered_for_different_taxonomy() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/categories/1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertArrayHasKey( 'meta', $data );
-		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
-		$this->assertEquals( false, isset( $meta['test_tag_meta'] ) );
+		$this->assertFalse( isset( $meta['test_tag_meta'] ) );
 	}
 
 	public function test_get_term_invalid_taxonomy() {
@@ -854,6 +859,18 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
 	}
 
+	public function test_create_item_with_no_parent() {
+		wp_set_current_user( self::$administrator );
+		$parent  = 0;
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories' );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'parent', $parent );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $parent, $data['parent'] );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( self::$administrator );
 		$orig_args = array(
@@ -922,6 +939,33 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		$data = $response->get_data();
 		$this->assertEquals( $parent->term_id, $data['parent'] );
+	}
+
+	public function test_update_item_remove_parent() {
+		wp_set_current_user( self::$administrator );
+
+		$old_parent_term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+		$new_parent_id   = 0;
+
+		$term = get_term_by(
+			'id',
+			$this->factory->category->create(
+				[
+					'parent' => $old_parent_term->term_id,
+				]
+			),
+			'category'
+		);
+
+		$this->assertEquals( $old_parent_term->term_id, $term->parent );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_id );
+		$request->set_param( 'parent', $new_parent_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( $new_parent_id, $data['parent'] );
 	}
 
 	public function test_update_item_invalid_parent() {

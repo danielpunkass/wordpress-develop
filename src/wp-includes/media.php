@@ -104,8 +104,7 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		if ( intval( $content_width ) > 0 && 'edit' === $context ) {
 			$max_width = min( intval( $content_width ), $max_width );
 		}
-	} // $size == 'full' has no constraint
-	else {
+	} else { // $size == 'full' has no constraint
 		$max_width  = $width;
 		$max_height = $height;
 	}
@@ -266,8 +265,8 @@ function image_downsize( $id, $size = 'medium' ) {
  * @global array $_wp_additional_image_sizes Associative array of additional image sizes.
  *
  * @param string     $name   Image size identifier.
- * @param int        $width  Image width in pixels.
- * @param int        $height Image height in pixels.
+ * @param int        $width  Optional. Image width in pixels. Default 0.
+ * @param int        $height Optional. Image height in pixels. Default 0.
  * @param bool|array $crop   Optional. Whether to crop images to specified width and height or resize.
  *                           An array can specify positioning of the crop area. Default false.
  */
@@ -734,7 +733,7 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 			$data = array_shift( $candidates );
 			/*
 			* When the size requested is smaller than the thumbnail dimensions, we
-			* fall back to the thumbnail size to maintain backwards compatibility with
+			* fall back to the thumbnail size to maintain backward compatibility with
 			* pre 4.6 versions of WordPress.
 			*/
 		} elseif ( ! empty( $imagedata['sizes']['thumbnail'] ) && $imagedata['sizes']['thumbnail']['width'] >= $size[0] && $imagedata['sizes']['thumbnail']['width'] >= $size[1] ) {
@@ -1498,7 +1497,7 @@ add_shortcode( 'caption', 'img_caption_shortcode' );
  *
  * @since 2.6.0
  * @since 3.9.0 The `class` attribute was added.
- * @since 5.0.0 The `caption_id` attribute was added.
+ * @since 5.1.0 The `caption_id` attribute was added.
  *
  * @param array  $attr {
  *     Attributes of the caption shortcode.
@@ -2872,7 +2871,7 @@ function get_attachment_taxonomies( $attachment, $output = 'names' ) {
 	}
 
 	$file     = get_attached_file( $attachment->ID );
-	$filename = basename( $file );
+	$filename = wp_basename( $file );
 
 	$objects = array( 'attachment' );
 
@@ -3673,10 +3672,8 @@ function wp_enqueue_media( $args = array() ) {
 		'warnBulkDelete'              => __( "You are about to permanently delete these items from your site.\nThis action cannot be undone.\n 'Cancel' to stop, 'OK' to delete." ),
 		'warnBulkTrash'               => __( "You are about to trash these items.\n  'Cancel' to stop, 'OK' to delete." ),
 		'bulkSelect'                  => __( 'Bulk Select' ),
-		'cancelSelection'             => __( 'Cancel Selection' ),
-		'trashSelected'               => __( 'Trash Selected' ),
-		'untrashSelected'             => __( 'Untrash Selected' ),
-		'deleteSelected'              => __( 'Delete Selected' ),
+		'trashSelected'               => __( 'Move to Trash' ),
+		'restoreSelected'             => __( 'Restore from Trash' ),
 		'deletePermanently'           => __( 'Delete Permanently' ),
 		'apply'                       => __( 'Apply' ),
 		'filterByDate'                => __( 'Filter by date' ),
@@ -3755,6 +3752,9 @@ function wp_enqueue_media( $args = array() ) {
 		'updateVideoPlaylist'         => __( 'Update video playlist' ),
 		'addToVideoPlaylist'          => __( 'Add to video playlist' ),
 		'addToVideoPlaylistTitle'     => __( 'Add to Video Playlist' ),
+
+		// Headings
+		'attachmentsList'             => __( 'Attachments list' ),
 	);
 
 	/**

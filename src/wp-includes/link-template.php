@@ -212,7 +212,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 			$author     = $authordata->user_nicename;
 		}
 
-		$date           = explode( ' ', date( 'Y m d H i s', $unixtime ) );
+		$date           = explode( ' ', gmdate( 'Y m d H i s', $unixtime ) );
 		$rewritereplace =
 		array(
 			$date[0],
@@ -470,7 +470,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 function get_year_link( $year ) {
 	global $wp_rewrite;
 	if ( ! $year ) {
-		$year = gmdate( 'Y', current_time( 'timestamp' ) );
+		$year = current_time( 'Y' );
 	}
 	$yearlink = $wp_rewrite->get_year_permastruct();
 	if ( ! empty( $yearlink ) ) {
@@ -505,10 +505,10 @@ function get_year_link( $year ) {
 function get_month_link( $year, $month ) {
 	global $wp_rewrite;
 	if ( ! $year ) {
-		$year = gmdate( 'Y', current_time( 'timestamp' ) );
+		$year = current_time( 'Y' );
 	}
 	if ( ! $month ) {
-		$month = gmdate( 'm', current_time( 'timestamp' ) );
+		$month = current_time( 'm' );
 	}
 	$monthlink = $wp_rewrite->get_month_permastruct();
 	if ( ! empty( $monthlink ) ) {
@@ -546,13 +546,13 @@ function get_month_link( $year, $month ) {
 function get_day_link( $year, $month, $day ) {
 	global $wp_rewrite;
 	if ( ! $year ) {
-		$year = gmdate( 'Y', current_time( 'timestamp' ) );
+		$year = current_time( 'Y' );
 	}
 	if ( ! $month ) {
-		$month = gmdate( 'm', current_time( 'timestamp' ) );
+		$month = current_time( 'm' );
 	}
 	if ( ! $day ) {
-		$day = gmdate( 'j', current_time( 'timestamp' ) );
+		$day = current_time( 'j' );
 	}
 
 	$daylink = $wp_rewrite->get_day_permastruct();
@@ -1687,6 +1687,18 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	$where    = '';
 	$adjacent = $previous ? 'previous' : 'next';
 
+	if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
+		// Back-compat, $excluded_terms used to be $excluded_categories with IDs separated by " and ".
+		if ( false !== strpos( $excluded_terms, ' and ' ) ) {
+			_deprecated_argument( __FUNCTION__, '3.3.0', sprintf( __( 'Use commas instead of %s to separate excluded terms.' ), "'and'" ) );
+			$excluded_terms = explode( ' and ', $excluded_terms );
+		} else {
+			$excluded_terms = explode( ',', $excluded_terms );
+		}
+
+		$excluded_terms = array_map( 'intval', $excluded_terms );
+	}
+
 	/**
 	 * Filters the IDs of terms excluded from adjacent post queries.
 	 *
@@ -1695,23 +1707,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $excluded_terms Array of excluded term IDs.
+	 * @param array $excluded_terms Array of excluded term IDs.
 	 */
 	$excluded_terms = apply_filters( "get_{$adjacent}_post_excluded_terms", $excluded_terms );
 
 	if ( $in_same_term || ! empty( $excluded_terms ) ) {
-		if ( ! empty( $excluded_terms ) && ! is_array( $excluded_terms ) ) {
-			// back-compat, $excluded_terms used to be $excluded_terms with IDs separated by " and "
-			if ( false !== strpos( $excluded_terms, ' and ' ) ) {
-				_deprecated_argument( __FUNCTION__, '3.3.0', sprintf( __( 'Use commas instead of %s to separate excluded terms.' ), "'and'" ) );
-				$excluded_terms = explode( ' and ', $excluded_terms );
-			} else {
-				$excluded_terms = explode( ',', $excluded_terms );
-			}
-
-			$excluded_terms = array_map( 'intval', $excluded_terms );
-		}
-
 		if ( $in_same_term ) {
 			$join  .= " INNER JOIN $wpdb->term_relationships AS tr ON p.ID = tr.object_id INNER JOIN $wpdb->term_taxonomy tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
 			$where .= $wpdb->prepare( 'AND tt.taxonomy = %s', $taxonomy );
@@ -2189,7 +2189,7 @@ function adjacent_post_link( $format, $link, $in_same_term = false, $excluded_te
  *
  * @global WP_Rewrite $wp_rewrite
  *
- * @param int  $pagenum Optional. Page ID. Default 1.
+ * @param int  $pagenum Optional. Page number. Default 1.
  * @param bool $escape  Optional. Whether to escape the URL for display, with esc_url(). Defaults to true.
  *                      Otherwise, prepares the URL with esc_url_raw().
  * @return string The link URL for the given page number.
@@ -2248,10 +2248,12 @@ function get_pagenum_link( $pagenum = 1, $escape = true ) {
 	 * Filters the page number link for the current request.
 	 *
 	 * @since 2.5.0
+	 * @since 5.2.0 Added the `$pagenum` argument.
 	 *
-	 * @param string $result The page number link.
+	 * @param string $result  The page number link.
+	 * @param int    $pagenum The page number.
 	 */
-	$result = apply_filters( 'get_pagenum_link', $result );
+	$result = apply_filters( 'get_pagenum_link', $result, $pagenum );
 
 	if ( $escape ) {
 		return esc_url( $result );
@@ -3937,6 +3939,29 @@ function get_avatar_url( $id_or_email, $args = null ) {
 	return $args['url'];
 }
 
+
+/**
+ * Check if this comment type allows avatars to be retrieved.
+ *
+ * @since 5.1.0
+ *
+ * @param string $comment_type Comment type to check.
+ * @return bool Whether the comment type is allowed for retrieving avatars.
+ */
+function is_avatar_comment_type( $comment_type ) {
+	/**
+	 * Filters the list of allowed comment types for retrieving avatars.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param array $types An array of content types. Default only contains 'comment'.
+	 */
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
+
+	return in_array( $comment_type, (array) $allowed_comment_types, true );
+}
+
+
 /**
  * Retrieves default data about the avatar.
  *
@@ -4052,7 +4077,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 	 */
 	$args = apply_filters( 'pre_get_avatar_data', $args, $id_or_email );
 
-	if ( isset( $args['url'] ) && ! is_null( $args['url'] ) ) {
+	if ( isset( $args['url'] ) ) {
 		/** This filter is documented in wp-includes/link-template.php */
 		return apply_filters( 'get_avatar_data', $args, $id_or_email );
 	}
@@ -4082,15 +4107,7 @@ function get_avatar_data( $id_or_email, $args = null ) {
 		// Post Object
 		$user = get_user_by( 'id', (int) $id_or_email->post_author );
 	} elseif ( $id_or_email instanceof WP_Comment ) {
-		/**
-		 * Filters the list of allowed comment types for retrieving avatars.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param array $types An array of content types. Default only contains 'comment'.
-		 */
-		$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
-		if ( ! empty( $id_or_email->comment_type ) && ! in_array( $id_or_email->comment_type, (array) $allowed_comment_types ) ) {
+		if ( ! is_avatar_comment_type( get_comment_type( $id_or_email ) ) ) {
 			$args['url'] = false;
 			/** This filter is documented in wp-includes/link-template.php */
 			return apply_filters( 'get_avatar_data', $args, $id_or_email );

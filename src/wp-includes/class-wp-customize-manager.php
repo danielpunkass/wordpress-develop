@@ -232,7 +232,7 @@ final class WP_Customize_Manager {
 	 * Changeset data loaded from a customize_changeset post.
 	 *
 	 * @since 4.7.0
-	 * @var array
+	 * @var array|null
 	 */
 	private $_changeset_data;
 
@@ -317,7 +317,7 @@ final class WP_Customize_Manager {
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-name-control.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-locations-control.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-auto-add-control.php' );
-		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-control.php' ); // @todo Remove in 5.0. See #42364.
+		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-control.php' ); // @todo Remove in a future release. See #42364.
 
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menus-panel.php' );
 
@@ -325,7 +325,7 @@ final class WP_Customize_Manager {
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-themes-section.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-sidebar-section.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-section.php' );
-		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-section.php' ); // @todo Remove in 5.0. See #42364.
+		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-section.php' ); // @todo Remove in a future release. See #42364.
 
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-custom-css-setting.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-filter-setting.php' );
@@ -402,7 +402,7 @@ final class WP_Customize_Manager {
 
 		// Add theme update notices.
 		if ( current_user_can( 'install_themes' ) || current_user_can( 'update_themes' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/update.php';
+			require_once ABSPATH . 'wp-admin/includes/update.php';
 			add_action( 'customize_controls_print_footer_scripts', 'wp_print_admin_notice_templates' );
 		}
 	}
@@ -1360,7 +1360,7 @@ final class WP_Customize_Manager {
 				if ( ! $attachment_id ) {
 
 					// Copy file to temp location so that original file won't get deleted from theme after sideloading.
-					$temp_file_name = wp_tempnam( basename( $file_path ) );
+					$temp_file_name = wp_tempnam( wp_basename( $file_path ) );
 					if ( $temp_file_name && copy( $file_path, $temp_file_name ) ) {
 						$file_array['tmp_name'] = $temp_file_name;
 					}
@@ -1621,7 +1621,7 @@ final class WP_Customize_Manager {
 			} else {
 				continue;
 			}
-			$file_name = basename( $attachment['file'] );
+			$file_name = wp_basename( $attachment['file'] );
 
 			// Skip file types that are not recognized.
 			$checked_filetype = wp_check_filetype( $file_name );
@@ -1896,9 +1896,8 @@ final class WP_Customize_Manager {
 	 * @return array Headers.
 	 */
 	public function filter_iframe_security_headers( $headers ) {
-		$customize_url                      = admin_url( 'customize.php' );
-		$headers['X-Frame-Options']         = 'ALLOW-FROM ' . $customize_url;
-		$headers['Content-Security-Policy'] = 'frame-ancestors ' . preg_replace( '#^(\w+://[^/]+).+?$#', '$1', $customize_url );
+		$headers['X-Frame-Options']         = 'SAMEORIGIN';
+		$headers['Content-Security-Policy'] = "frame-ancestors 'self'";
 		return $headers;
 	}
 
@@ -2886,10 +2885,20 @@ final class WP_Customize_Manager {
 		$this->store_changeset_revision = $allow_revision;
 		add_filter( 'wp_save_post_revision_post_has_changed', array( $this, '_filter_revision_post_has_changed' ), 5, 3 );
 
-		// Update the changeset post. The publish_customize_changeset action will cause the settings in the changeset to be saved via WP_Customize_Setting::save().
+		/*
+		 * Update the changeset post. The publish_customize_changeset action
+		 * will cause the settings in the changeset to be saved via
+		 * WP_Customize_Setting::save().
+		 */
+
+		// Prevent content filters from corrupting JSON in post_content.
 		$has_kses = ( false !== has_filter( 'content_save_pre', 'wp_filter_post_kses' ) );
 		if ( $has_kses ) {
-			kses_remove_filters(); // Prevent KSES from corrupting JSON in post_content.
+			kses_remove_filters();
+		}
+		$has_targeted_link_rel_filters = ( false !== has_filter( 'content_save_pre', 'wp_targeted_link_rel' ) );
+		if ( $has_targeted_link_rel_filters ) {
+			wp_remove_targeted_link_rel_filters();
 		}
 
 		// Note that updating a post with publish status will trigger WP_Customize_Manager::publish_changeset_values().
@@ -2919,9 +2928,15 @@ final class WP_Customize_Manager {
 				$this->_changeset_post_id = $r; // Update cached post ID for the loaded changeset.
 			}
 		}
+
+		// Restore removed content filters.
 		if ( $has_kses ) {
 			kses_init_filters();
 		}
+		if ( $has_targeted_link_rel_filters ) {
+			wp_init_targeted_link_rel_filters();
+		}
+
 		$this->_changeset_data = null; // Reset so WP_Customize_Manager::changeset_data() will re-populate with updated contents.
 
 		remove_filter( 'wp_save_post_revision_post_has_changed', array( $this, '_filter_revision_post_has_changed' ) );
@@ -3632,7 +3647,7 @@ final class WP_Customize_Manager {
 	 *  @type string       $capability            Capability required for the setting. Default 'edit_theme_options'
 	 *  @type string|array $theme_supports        Theme features required to support the panel. Default is none.
 	 *  @type string       $default               Default value for the setting. Default is empty string.
-	 *  @type string       $transport             Options for rendering the live preview of changes in Theme Customizer.
+	 *  @type string       $transport             Options for rendering the live preview of changes in Customizer.
 	 *                                            Using 'refresh' makes the change visible by reloading the whole preview.
 	 *                                            Using 'postMessage' allows a custom JavaScript to handle live changes.
 	 * @link https://developer.wordpress.org/themes/customize-api
@@ -4579,7 +4594,7 @@ final class WP_Customize_Manager {
 
 		if ( $this->return_url ) {
 			$return_url = $this->return_url;
-		} elseif ( $referer && ! in_array( basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
+		} elseif ( $referer && ! in_array( wp_basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 			$return_url = $referer;
 		} elseif ( $this->preview_url ) {
 			$return_url = $this->preview_url;
@@ -5562,7 +5577,7 @@ final class WP_Customize_Manager {
 		$section_description .= '<ul>';
 		$section_description .= '<li id="editor-keyboard-trap-help-2">' . __( 'In the editing area, the Tab key enters a tab character.' ) . '</li>';
 		$section_description .= '<li id="editor-keyboard-trap-help-3">' . __( 'To move away from this area, press the Esc key followed by the Tab key.' ) . '</li>';
-		$section_description .= '<li id="editor-keyboard-trap-help-4">' . __( 'Screen reader users: when in forms mode, you may need to press the escape key twice.' ) . '</li>';
+		$section_description .= '<li id="editor-keyboard-trap-help-4">' . __( 'Screen reader users: when in forms mode, you may need to press the Esc key twice.' ) . '</li>';
 		$section_description .= '</ul>';
 
 		if ( 'false' !== wp_get_current_user()->syntax_highlighting ) {
@@ -5714,6 +5729,9 @@ final class WP_Customize_Manager {
 			// Arguments for all queries.
 			$wporg_args = array(
 				'per_page' => 100,
+				'fields'   => array(
+					'reviews_url' => true, // Explicitly request the reviews URL to be linked from the customizer.
+				),
 			);
 
 			$args = array_merge( $wporg_args, $args );

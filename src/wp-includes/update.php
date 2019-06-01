@@ -155,7 +155,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 			sprintf(
 				/* translators: %s: support forums URL */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-				__( 'https://wordpress.org/support/' )
+				__( 'https://wordpress.org/support/forums/' )
 			) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
 			headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
 		);
@@ -232,6 +232,11 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	// Trigger background updates if running non-interactively, and we weren't called from the update handler.
 	if ( $doing_cron && ! doing_action( 'wp_maybe_auto_update' ) ) {
+		/**
+		 * Fires during wp_cron, starting the auto update process.
+		 *
+		 * @since 3.9.0
+		 */
 		do_action( 'wp_maybe_auto_update' );
 	}
 }
@@ -374,7 +379,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 			sprintf(
 				/* translators: %s: support forums URL */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-				__( 'https://wordpress.org/support/' )
+				__( 'https://wordpress.org/support/forums/' )
 			) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
 			headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
 		);
@@ -559,7 +564,7 @@ function wp_update_themes( $extra_stats = array() ) {
 			sprintf(
 				/* translators: %s: support forums URL */
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
-				__( 'https://wordpress.org/support/' )
+				__( 'https://wordpress.org/support/forums/' )
 			) . ' ' . __( '(WordPress could not establish a secure connection to WordPress.org. Please contact your server administrator.)' ),
 			headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
 		);
@@ -590,8 +595,8 @@ function wp_update_themes( $extra_stats = array() ) {
  * @since 3.7.0
  */
 function wp_maybe_auto_update() {
-	include_once( ABSPATH . '/wp-admin/includes/admin.php' );
-	include_once( ABSPATH . '/wp-admin/includes/class-wp-upgrader.php' );
+	include_once( ABSPATH . 'wp-admin/includes/admin.php' );
+	include_once( ABSPATH . 'wp-admin/includes/class-wp-upgrader.php' );
 
 	$upgrader = new WP_Automatic_Updater;
 	$upgrader->run();

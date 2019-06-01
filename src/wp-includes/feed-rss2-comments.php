@@ -49,12 +49,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 	<atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />
 	<link><?php ( is_single() ) ? the_permalink_rss() : bloginfo_rss( 'url' ); ?></link>
 	<description><?php bloginfo_rss( 'description' ); ?></description>
-	<lastBuildDate>
-	<?php
-		$date = get_lastcommentmodified( 'GMT' );
-		echo $date ? mysql2date( 'r', $date, false ) : date( 'r' );
-	?>
-	</lastBuildDate>
+	<lastBuildDate><?php echo get_feed_build_date( 'r' ); ?></lastBuildDate>
 	<sy:updatePeriod>
 	<?php
 		/** This filter is documented in wp-includes/feed-rss2.php */
@@ -105,7 +100,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 		<?php else : // post pass ?>
 		<description><![CDATA[<?php comment_text_rss(); ?>]]></description>
 		<content:encoded><![CDATA[<?php comment_text(); ?>]]></content:encoded>
-		<?php
+			<?php
 		endif; // post pass
 			/**
 			 * Fires at the end of each RSS2 comment feed item.
@@ -116,7 +111,7 @@ do_action( 'rss_tag_pre', 'rss2-comments' );
 			 * @param int $comment_post->ID    The ID of the post the comment is connected to.
 			 */
 			do_action( 'commentrss2_item', $comment->comment_ID, $comment_post->ID );
-?>
+		?>
 			</item>
 			<?php
 		endwhile;

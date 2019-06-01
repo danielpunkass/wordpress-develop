@@ -18,6 +18,7 @@ define( 'EZSQL_VERSION', 'WP1.25' );
  * @since 0.71
  */
 define( 'OBJECT', 'OBJECT' );
+// phpcs:ignore Generic.NamingConventions.UpperCaseConstantName.ConstantNotUpperCase
 define( 'object', 'OBJECT' ); // Back compat.
 
 /**
@@ -112,7 +113,7 @@ class wpdb {
 	 * Last query made
 	 *
 	 * @since 0.71
-	 * @var array
+	 * @var string
 	 */
 	var $last_query;
 
@@ -178,7 +179,7 @@ class wpdb {
 	 *
 	 * @since 1.5.0
 	 * @since 2.5.0 The third element in each query log was added to record the calling functions.
-	 * @since 5.0.0 The fourth element in each query log was added to record the start time.
+	 * @since 5.1.0 The fourth element in each query log was added to record the start time.
 	 *
 	 * @var array[] {
 	 *     Array of queries that were executed.
@@ -417,7 +418,7 @@ class wpdb {
 	/**
 	 * Multisite Blog Metadata table
 	 *
-	 * @since 5.0.0
+	 * @since 5.1.0
 	 * @var string
 	 */
 	public $blogmeta;
@@ -1127,7 +1128,7 @@ class wpdb {
 				$message .= '<p>' . sprintf(
 					/* translators: %s: support forums URL */
 					__( 'If you don&#8217;t know how to set up a database you should <strong>contact your host</strong>. If all else fails you may find help at the <a href="%s">WordPress Support Forums</a>.' ),
-					__( 'https://wordpress.org/support/' )
+					__( 'https://wordpress.org/support/forums/' )
 				) . "</p>\n";
 
 				$this->bail( $message, 'db_select_fail' );
@@ -1273,7 +1274,7 @@ class wpdb {
 	 *
 	 * Literal percentage signs (%) in the query string must be written as %%. Percentage wildcards (for example,
 	 * to use in LIKE syntax) must be passed via a substitution argument containing the complete LIKE string, these
-	 * cannot be inserted directly in the query string. Also see {@see esc_like()}.
+	 * cannot be inserted directly in the query string. Also see wpdb::esc_like().
 	 *
 	 * Arguments may be passed as individual arguments to the method, or as a single array containing all arguments. A combination
 	 * of the two is not supported.
@@ -1285,10 +1286,10 @@ class wpdb {
 	 * @link https://secure.php.net/sprintf Description of syntax.
 	 * @since 2.3.0
 	 *
-	 * @param string      $query    Query statement with sprintf()-like placeholders
-	 * @param array|mixed $args     The array of variables to substitute into the query's placeholders if being called with an array of arguments,
-	 *                              or the first variable to substitute into the query's placeholders if being called with individual arguments.
-	 * @param mixed       $args,... further variables to substitute into the query's placeholders if being called wih individual arguments.
+	 * @param string      $query   Query statement with sprintf()-like placeholders
+	 * @param array|mixed $args    The array of variables to substitute into the query's placeholders if being called with an array of arguments,
+	 *                             or the first variable to substitute into the query's placeholders if being called with individual arguments.
+	 * @param mixed       ...$args further variables to substitute into the query's placeholders if being called wih individual arguments.
 	 * @return string|void Sanitized query string, if there is a query to prepare.
 	 */
 	public function prepare( $query, $args ) {
@@ -1334,7 +1335,7 @@ class wpdb {
 		 * If a %s placeholder already has quotes around it, removing the existing quotes and re-inserting them
 		 * ensures the quotes are consistent.
 		 *
-		 * For backwards compatibility, this is only applied to %s, and not to placeholders like %1$s, which are frequently
+		 * For backward compatibility, this is only applied to %s, and not to placeholders like %1$s, which are frequently
 		 * used in the middle of longer strings, or as table name placeholders.
 		 */
 		$query = str_replace( "'%s'", '%s', $query ); // Strip any existing single quotes.
@@ -1672,7 +1673,7 @@ class wpdb {
 			$message .= '<p>' . sprintf(
 				/* translators: %s: support forums URL */
 				__( 'If you&#8217;re unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
-				__( 'https://wordpress.org/support/' )
+				__( 'https://wordpress.org/support/forums/' )
 			) . "</p>\n";
 
 			$this->bail( $message, 'db_connect_fail' );
@@ -1830,7 +1831,7 @@ class wpdb {
 		$message .= '<p>' . sprintf(
 			/* translators: %s: support forums URL */
 			__( 'If you&#8217;re unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress Support Forums</a>.' ),
-			__( 'https://wordpress.org/support/' )
+			__( 'https://wordpress.org/support/forums/' )
 		) . "</p>\n";
 
 		// We weren't able to reconnect, so we better bail.
@@ -2040,7 +2041,7 @@ class wpdb {
 
 		/*
 		 * Add the filter to remove the placeholder escaper. Uses priority 0, so that anything
-		 * else attached to this filter will recieve the query with the placeholder string removed.
+		 * else attached to this filter will receive the query with the placeholder string removed.
 		 */
 		if ( ! has_filter( 'query', array( $this, 'remove_placeholder_escape' ) ) ) {
 			add_filter( 'query', array( $this, 'remove_placeholder_escape' ), 0 );
@@ -2544,8 +2545,10 @@ class wpdb {
 
 		$new_array = array();
 		// Extract the column values
-		for ( $i = 0, $j = count( $this->last_result ); $i < $j; $i++ ) {
-			$new_array[ $i ] = $this->get_var( null, $x, $i );
+		if ( $this->last_result ) {
+			for ( $i = 0, $j = count( $this->last_result ); $i < $j; $i++ ) {
+				$new_array[ $i ] = $this->get_var( null, $x, $i );
+			}
 		}
 		return $new_array;
 	}
@@ -2585,11 +2588,13 @@ class wpdb {
 		} elseif ( $output == OBJECT_K ) {
 			// Return an array of row objects with keys from column 1
 			// (Duplicates are discarded)
-			foreach ( $this->last_result as $row ) {
-				$var_by_ref = get_object_vars( $row );
-				$key        = array_shift( $var_by_ref );
-				if ( ! isset( $new_array[ $key ] ) ) {
-					$new_array[ $key ] = $row;
+			if ( $this->last_result ) {
+				foreach ( $this->last_result as $row ) {
+					$var_by_ref = get_object_vars( $row );
+					$key        = array_shift( $var_by_ref );
+					if ( ! isset( $new_array[ $key ] ) ) {
+						$new_array[ $key ] = $row;
+					}
 				}
 			}
 			return $new_array;

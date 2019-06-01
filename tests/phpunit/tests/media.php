@@ -1428,7 +1428,7 @@ EOF;
 	function test_wp_calculate_image_srcset() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
-		$year_month      = date( 'Y/m' );
+		$year_month      = gmdate( 'Y/m' );
 		$image_meta      = wp_get_attachment_metadata( self::$large_id );
 		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
 
@@ -1524,7 +1524,7 @@ EOF;
 		// Copy hash generation method used in wp_save_image().
 		$hash = 'e' . time() . rand( 100, 999 );
 
-		$filename_base = basename( $image_meta['file'], '.png' );
+		$filename_base = wp_basename( $image_meta['file'], '.png' );
 
 		// Add the hash to the image URL
 		$image_url = str_replace( $filename_base, $filename_base . '-' . $hash, $image_url );
@@ -1550,7 +1550,7 @@ EOF;
 	function test_wp_calculate_image_srcset_with_absolute_path_in_meta() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
 
-		$year_month      = date( 'Y/m' );
+		$year_month      = gmdate( 'Y/m' );
 		$image_meta      = wp_get_attachment_metadata( self::$large_id );
 		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
 
@@ -1831,7 +1831,7 @@ EOF;
 
 		$srcset = wp_get_attachment_image_srcset( self::$large_id, $size_array, $image_meta );
 
-		$year_month  = date( 'Y/m' );
+		$year_month  = gmdate( 'Y/m' );
 		$uploads_dir = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
 
 		// Set up test cases for all expected size names.
@@ -2228,8 +2228,8 @@ EOF;
 		remove_all_filters( 'wp_calculate_image_sizes' );
 
 		$actual = wp_get_attachment_image( self::$large_id, 'testsize' );
-		$year   = date( 'Y' );
-		$month  = date( 'm' );
+		$year   = gmdate( 'Y' );
+		$month  = gmdate( 'm' );
 
 		$expected = '<img width="999" height="999" src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . $year . '/' . $month . '/test-image-testsize-999x999.png"' .
 			' class="attachment-testsize size-testsize" alt=""' .
@@ -2341,6 +2341,21 @@ EOF;
 		);
 
 		$this->assertEquals( 1265680539, wp_get_media_creation_timestamp( $metadata ) );
+	}
+
+	/**
+	 * Test created timestamp is properly read from an MP4 file.
+	 *
+	 * This MP4 video file has an AAC audio track, so it can be used to test
+	 *`wp_read_audio_metadata()`.
+	 *
+	 * @ticket 42017
+	 */
+	function test_wp_read_audio_metadata_adds_creation_date_with_mp4() {
+		$video    = DIR_TESTDATA . '/uploads/small-video.mp4';
+		$metadata = wp_read_audio_metadata( $video );
+
+		$this->assertEquals( 1269120551, $metadata['created_timestamp'] );
 	}
 
 	/**

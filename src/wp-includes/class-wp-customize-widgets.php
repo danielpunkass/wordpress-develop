@@ -777,7 +777,7 @@ final class WP_Customize_Widgets {
 				'saveBtnLabel'     => __( 'Apply' ),
 				'saveBtnTooltip'   => __( 'Save and preview changes before publishing them.' ),
 				'removeBtnLabel'   => __( 'Remove' ),
-				'removeBtnTooltip' => __( 'Trash widget by moving it to the inactive widgets sidebar.' ),
+				'removeBtnTooltip' => __( 'Keep widget settings and move it to the inactive widgets' ),
 				'error'            => __( 'An error has occurred. Please reload the page and try again.' ),
 				'widgetMovedUp'    => __( 'Widget moved up' ),
 				'widgetMovedDown'  => __( 'Widget moved down' ),
@@ -949,7 +949,7 @@ final class WP_Customize_Widgets {
 		}
 
 		global $wp_registered_widgets, $wp_registered_widget_controls;
-		require_once ABSPATH . '/wp-admin/includes/widgets.php'; // for next_widget_id_number()
+		require_once ABSPATH . 'wp-admin/includes/widgets.php'; // for next_widget_id_number()
 
 		$sort = $wp_registered_widgets;
 		usort( $sort, array( $this, '_sort_name_callback' ) );
@@ -1151,8 +1151,8 @@ final class WP_Customize_Widgets {
 		<style>
 		.widget-customizer-highlighted-widget {
 			outline: none;
-			-webkit-box-shadow: 0 0 2px rgba(30,140,190,0.8);
-			box-shadow: 0 0 2px rgba(30,140,190,0.8);
+			-webkit-box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+			box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
 			position: relative;
 			z-index: 1;
 		}
@@ -1738,7 +1738,7 @@ final class WP_Customize_Widgets {
 	 * The current request's sidebar_instance_number context.
 	 *
 	 * @since 4.5.0
-	 * @var int
+	 * @var int|null
 	 */
 	protected $context_sidebar_instance_number;
 
@@ -1790,7 +1790,7 @@ final class WP_Customize_Widgets {
 	 * Current sidebar being rendered.
 	 *
 	 * @since 4.5.0
-	 * @var string
+	 * @var string|null
 	 */
 	protected $rendering_widget_id;
 
@@ -1798,7 +1798,7 @@ final class WP_Customize_Widgets {
 	 * Current widget being rendered.
 	 *
 	 * @since 4.5.0
-	 * @var string
+	 * @var string|null
 	 */
 	protected $rendering_sidebar_id;
 

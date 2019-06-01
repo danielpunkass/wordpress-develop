@@ -58,7 +58,7 @@
 	background-color: #72777c;
 	color: #fff;
 	font-size: 11px;
-	line-height: 21px;
+	line-height: 1.90909090;
 	text-align: center;
 }
 
@@ -109,7 +109,7 @@
 	background: #ca4a1f;
 	color: #fff;
 	font-size: 9px;
-	line-height: 17px;
+	line-height: 1.88888888;
 	text-align: center;
 }
 
@@ -152,8 +152,17 @@
 	overflow: hidden;
 }
 
+#replysubmit .reply-submit-buttons {
+	margin-bottom: 0;
+}
+
 #replysubmit .button {
 	margin-right: 5px;
+}
+
+#replysubmit .spinner {
+	float: none;
+	margin: -4px 0 0;
 }
 
 #replyrow.inline-edit-row fieldset.comment-reply {
@@ -243,12 +252,12 @@
 
 #the-comment-list tr:last-child th,
 #the-comment-list tr:last-child td {
-    box-shadow: none;
+	box-shadow: none;
 }
 
 #the-comment-list tr.unapproved + tr.approved th,
 #the-comment-list tr.unapproved + tr.approved td {
-    border-top: 1px solid rgba(0, 0, 0, 0.03);
+	border-top: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 /* table vim shortcuts */
@@ -351,7 +360,7 @@ td.plugin-title p {
 table.media .column-title .media-icon {
 	float: left;
 	min-height: 60px;
- 	margin: 0 9px 0 0;
+	margin: 0 9px 0 0;
 }
 
 table.media .column-title .media-icon img {
@@ -393,7 +402,7 @@ table.media .column-title .filename {
 }
 
 #commentsdiv .inside .row-actions {
-	line-height:18px;
+	line-height: 1.38461538;
 }
 
 #commentsdiv .inside .column-author {
@@ -451,7 +460,7 @@ table.media .column-title .filename {
 	top: -4px;
 	left: -8px;
 	color: #444;
-	line-height: 10px;
+	line-height: 0.5;
 	position: relative;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
@@ -495,9 +504,9 @@ th.asc a:focus span.sorting-indicator:before {
 }
 
 .wp-list-table .toggle-row:focus:before {
-    box-shadow:
-    	0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, .8);
+	box-shadow:
+		0 0 0 1px #5b9dd9,
+		0 0 2px 1px rgba(30, 140, 190, 0.8);
 }
 
 .ie8 .wp-list-table .toggle-row:focus:before {
@@ -528,13 +537,14 @@ th.asc a:focus span.sorting-indicator:before {
 	content: "\f142";
 }
 
-tr.wp-locked .locked-indicator {
+.locked-indicator {
+	display: none;
 	margin-left: 6px;
 	height: 20px;
 	width: 16px;
 }
 
-tr.wp-locked .locked-indicator-icon:before {
+.locked-indicator-icon:before {
 	color: #82878c;
 	content: "\f160";
 	display: inline-block;
@@ -545,30 +555,25 @@ tr.wp-locked .locked-indicator-icon:before {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-tr.wp-locked .check-column label,
-tr.wp-locked .check-column input[type="checkbox"],
-tr.wp-locked .row-actions .inline,
-tr.wp-locked .row-actions .trash {
+.locked-info {
 	display: none;
-}
-
-tr .locked-info {
-	height: 0;
-	opacity: 0;
-}
-
-tr.wp-locked .locked-info {
 	margin-top: 4px;
-	height: auto;
-	opacity: 1;
 }
 
 .locked-text {
 	vertical-align: top;
 }
 
-tr.locked-info, tr.wp-locked .locked-info {
-	transition: height 1s, opacity 0.5s;
+.wp-locked .locked-indicator,
+.wp-locked .locked-info {
+	display: block;
+}
+
+tr.wp-locked .check-column label,
+tr.wp-locked .check-column input[type="checkbox"],
+tr.wp-locked .row-actions .inline,
+tr.wp-locked .row-actions .trash {
+	display: none;
 }
 
 .fixed .column-comments .sorting-indicator {
@@ -706,7 +711,7 @@ th.asc a:focus span.sorting-indicator {
 	width: 28px;
 	height: 28px;
 	text-align: center;
-	line-height: 24px;
+	line-height: 1.84615384;
 	text-decoration: none;
 }
 
@@ -967,7 +972,7 @@ tr.inline-edit-row td,
 
 .inline-edit-row fieldset.inline-edit-date select {
 	margin: 1px;
-	line-height: 28px;
+	line-height: 2;
 }
 
 .inline-edit-row fieldset label span.input-text-wrap,
@@ -1161,7 +1166,7 @@ ul.cat-checklist {
 }
 
 .plugins td.desc {
-	line-height: 1.5em;
+	line-height: 1.5;
 }
 
 .plugins .desc ul,
@@ -1202,15 +1207,15 @@ ul.cat-checklist {
 .plugin-install #the-list td,
 .upgrade .plugins td,
 .upgrade .plugins th {
-	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .plugins tr.active.plugin-update-tr + tr.inactive th,
 .plugins tr.active.plugin-update-tr + tr.inactive td,
 .plugins tr.active + tr.inactive th,
 .plugins tr.active + tr.inactive td {
-	border-top: 1px solid rgba(0,0,0,0.03);
-	box-shadow: inset 0 1px 0 rgba(0,0,0,0.02), inset 0 -1px 0 #e1e1e1;
+	border-top: 1px solid rgba(0, 0, 0, 0.03);
+	box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02), inset 0 -1px 0 #e1e1e1;
 }
 
 .plugins .update td,
@@ -1248,7 +1253,7 @@ ul.cat-checklist {
 .plugins .plugin-title .dashicons:before {
 	padding: 2px;
 	background-color: #eee;
-	box-shadow: inset 0 0 10px rgba(160,165,170,.15);
+	box-shadow: inset 0 0 10px rgba(160, 165, 170, 0.15);
 	font-size: 60px;
 	color: #B4B9BE;
 }
@@ -1281,7 +1286,7 @@ ul.cat-checklist {
 }
 
 .plugins .plugin-update-tr .plugin-update {
-	box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	overflow: hidden; /* clearfix */
 	padding: 0;
 }
@@ -1299,6 +1304,31 @@ ul.cat-checklist {
 .plugins .plugin-update a,
 .updates-table .plugin-title a {
 	text-decoration: underline;
+}
+
+.plugins tr.paused th.check-column {
+	border-left: 4px solid #d54e21;
+}
+
+.plugins tr.paused th,
+.plugins tr.paused td {
+	background-color: #fef7f1;
+}
+
+.plugins tr.paused .plugin-title,
+.plugins .paused .dashicons-warning {
+	color: #dc3232;
+}
+
+.plugins .paused .error-display p,
+.plugins .paused .error-display code {
+	font-size: 90%;
+	font-style: italic;
+	color: rgb( 0, 0, 0, 0.7 );
+}
+
+.plugins .resume-link {
+	color: #dc3232;
 }
 
 .plugin-card .update-now:before {
@@ -1373,7 +1403,7 @@ ul.cat-checklist {
 	margin-right: 0;
 }
 
-@media screen and ( min-width: 1600px ) {
+@media screen and (min-width: 1600px) and ( max-width: 2299px ) {
 	.plugin-card {
 		width: 30%;
 		width: calc( 33.1% - 8px );
@@ -1398,7 +1428,7 @@ ul.cat-checklist {
 	}
 }
 
-@media screen and ( min-width: 2300px ) {
+@media screen and (min-width: 2300px) {
 	.plugin-card {
 		width: 25%;
 		width: calc( 25% - 12px );
@@ -1492,7 +1522,7 @@ div.action-links,
 }
 
 .plugin-card .column-rating {
-	line-height: 23px;
+	line-height: 1.76923076;
 }
 
 .plugin-card .column-rating,
@@ -1531,12 +1561,14 @@ div.action-links,
 	color: #444;
 }
 
-.plugin-card .compatibility-incompatible:before {
+.plugin-card .column-compatibility .compatibility-incompatible:before {
 	content: "\f158";
+	color: #c62d2d;
 }
 
-.plugin-card .compatibility-compatible:before {
+.plugin-card .column-compatibility .compatibility-compatible:before {
 	content: "\f147";
+	color: #31843f;
 }
 
 .plugin-card .notice {
@@ -1592,7 +1624,7 @@ div.action-links,
 /* =Media Queries
 -------------------------------------------------------------- */
 
-@media screen and ( max-width: 1100px ) and ( min-width: 782px ), ( max-width: 480px ) {
+@media screen and (max-width: 1100px) and (min-width: 782px), (max-width: 480px) {
 	.plugin-card .action-links {
 		position: static;
 		margin-left: 148px;
@@ -1628,7 +1660,7 @@ div.action-links,
 	}
 }
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	/* WP List Table Options & Filters */
 	.tablenav {
 		height: auto;
@@ -1659,7 +1691,7 @@ div.action-links,
 	.view-switch a {
 		width: 36px;
 		height: 36px;
-		line-height: 33px;
+		line-height: 2.53846153;
 	}
 
 	/* Pagination */
@@ -1710,7 +1742,7 @@ div.action-links,
 		min-width: 44px;
 		padding: 12px 6px;
 		font-size: 16px;
-		line-height: 18px;
+		line-height: 1.125;
 	}
 
 	/* WP List Table Adjustments: General */
@@ -1785,6 +1817,11 @@ div.action-links,
 
 	.fixed .column-comment .comment-author {
 		display: block;
+	}
+
+	/* Comment author hidden via Screen Options */
+	.fixed .column-author.hidden ~ .column-comment .comment-author {
+		display: none;
 	}
 
 	#the-comment-list .is-expanded td {
@@ -2007,6 +2044,11 @@ div.action-links,
 		padding: 10px 9px; /* reset from other list tables that have a label at this width */
 	}
 
+	/* Plugin description hidden via Screen Options */
+	#wpbody-content .wp-list-table.plugins .desc.hidden {
+		display: none;
+	}
+
 	#wpbody-content .wp-list-table.plugins .column-description {
 		padding-top: 2px;
 	}
@@ -2111,7 +2153,7 @@ div.action-links,
 
 	table.plugin-install #the-list tr {
 		display: block;
-		box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1);
+		box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 	}
 
 	.plugin-card {
@@ -2121,7 +2163,7 @@ div.action-links,
 	}
 }
 
-@media screen and ( max-width: 480px ) {
+@media screen and (max-width: 480px) {
 	.tablenav-pages .current-page {
 		margin: 0;
 	}

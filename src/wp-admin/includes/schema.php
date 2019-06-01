@@ -356,7 +356,7 @@ $wp_queries = wp_get_db_schema( 'all' );
  * Create WordPress options and set the default values.
  *
  * @since 1.5.0
- * @since 5.0.0 The $options parameter has been added.
+ * @since 5.1.0 The $options parameter has been added.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  * @global int  $wp_db_version
@@ -541,7 +541,7 @@ function populate_options( array $options = array() ) {
 		'wp_page_for_privacy_policy'      => 0,
 
 		// 4.9.8
-		'show_comments_cookies_opt_in'    => 0,
+		'show_comments_cookies_opt_in'    => 1,
 	);
 
 	// 3.3
@@ -707,18 +707,6 @@ function populate_roles() {
  */
 function populate_roles_160() {
 	// Add roles
-
-	// Dummy gettext calls to get strings in the catalog.
-	/* translators: user role */
-	_x( 'Administrator', 'User role' );
-	/* translators: user role */
-	_x( 'Editor', 'User role' );
-	/* translators: user role */
-	_x( 'Author', 'User role' );
-	/* translators: user role */
-	_x( 'Contributor', 'User role' );
-	/* translators: user role */
-	_x( 'Subscriber', 'User role' );
 
 	add_role( 'administrator', 'Administrator' );
 	add_role( 'editor', 'Editor' );
@@ -1121,7 +1109,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 /**
  * Creates WordPress network meta and sets the default values.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @global wpdb $wpdb          WordPress database abstraction object.
  * @global int  $wp_db_version WordPress database version.
@@ -1252,7 +1240,7 @@ We hope you enjoy your new site. Thanks!
 		'wpmu_upgrade_site'           => $wp_db_version,
 		'welcome_email'               => $welcome_email,
 		/* translators: %s: site link */
-		'first_post'                  => __( 'Welcome to %s. This is your first post. Edit or delete it, then start blogging!' ),
+		'first_post'                  => __( 'Welcome to %s. This is your first post. Edit or delete it, then start writing!' ),
 		// @todo - network admins should have a method of editing the network siteurl (used for cookie hash)
 		'siteurl'                     => get_option( 'siteurl' ) . '/',
 		'add_new_users'               => '0',
@@ -1296,7 +1284,7 @@ We hope you enjoy your new site. Thanks!
 /**
  * Creates WordPress site meta and sets the default values.
  *
- * @since 5.0.0
+ * @since 5.1.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1316,8 +1304,18 @@ function populate_site_meta( $site_id, array $meta = array() ) {
 		return;
 	}
 
+	/**
+	 * Filters meta for a site on creation.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array $meta    Associative array of site meta keys and values to be inserted.
+	 * @param int   $site_id ID of site to populate.
+	 */
+	$site_meta = apply_filters( 'populate_site_meta', $meta, $site_id );
+
 	$insert = '';
-	foreach ( $meta as $meta_key => $meta_value ) {
+	foreach ( $site_meta as $meta_key => $meta_value ) {
 		if ( is_array( $meta_value ) ) {
 			$meta_value = serialize( $meta_value );
 		}
@@ -1329,5 +1327,6 @@ function populate_site_meta( $site_id, array $meta = array() ) {
 
 	$wpdb->query( "INSERT INTO $wpdb->blogmeta ( blog_id, meta_key, meta_value ) VALUES " . $insert ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-	wp_cache_set( 'last_changed', microtime(), 'sites' );
+	wp_cache_delete( $site_id, 'blog_meta' );
+	wp_cache_set_sites_last_changed();
 }

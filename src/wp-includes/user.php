@@ -95,10 +95,6 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	$user = wp_authenticate( $credentials['user_login'], $credentials['user_password'] );
 
 	if ( is_wp_error( $user ) ) {
-		if ( $user->get_error_codes() == array( 'empty_username', 'empty_password' ) ) {
-			$user = new WP_Error( '', '' );
-		}
-
 		return $user;
 	}
 
@@ -680,8 +676,9 @@ function get_blogs_of_user( $user_id, $all = false ) {
 
 	if ( ! empty( $site_ids ) ) {
 		$args = array(
-			'number'   => '',
-			'site__in' => $site_ids,
+			'number'                 => '',
+			'site__in'               => $site_ids,
+			'update_site_meta_cache' => false,
 		);
 		if ( ! $all ) {
 			$args['archived'] = 0;
@@ -882,6 +879,24 @@ function count_users( $strategy = 'time', $site_id = null ) {
 	if ( ! $site_id ) {
 		$site_id = get_current_blog_id();
 	}
+
+	/**
+	 * Filter the user count before queries are run. Return a non-null value to cause count_users()
+	 * to return early.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param null|string $result   Default null.
+	 * @param string      $strategy Optional. The computational strategy to use when counting the users.
+	 *                              Accepts either 'time' or 'memory'. Default 'time'.
+	 * @param int|null    $site_id  Optional. The site ID to count users for. Defaults to the current site.
+	 */
+	$pre = apply_filters( 'pre_count_users', null, $strategy, $site_id );
+
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	$blog_prefix = $wpdb->get_blog_prefix( $site_id );
 	$result      = array();
 
@@ -987,12 +1002,12 @@ function count_users( $strategy = 'time', $site_id = null ) {
  * @global string  $user_url      The url in the user's profile
  * @global string  $user_identity The display name of the user
  *
- * @param int $for_user_id Optional. User ID to set up global data.
+ * @param int $for_user_id Optional. User ID to set up global data. Default 0.
  */
-function setup_userdata( $for_user_id = '' ) {
+function setup_userdata( $for_user_id = 0 ) {
 	global $user_login, $userdata, $user_level, $user_ID, $user_email, $user_url, $user_identity;
 
-	if ( '' == $for_user_id ) {
+	if ( ! $for_user_id ) {
 		$for_user_id = get_current_user_id();
 	}
 	$user = get_userdata( $for_user_id );
@@ -1382,7 +1397,8 @@ function clean_user_cache( $user ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function username_exists( $username ) {
-	if ( $user = get_user_by( 'login', $username ) ) {
+	$user = get_user_by( 'login', $username );
+	if ( $user ) {
 		$user_id = $user->ID;
 	} else {
 		$user_id = false;
@@ -1412,7 +1428,8 @@ function username_exists( $username ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function email_exists( $email ) {
-	if ( $user = get_user_by( 'email', $email ) ) {
+	$user = get_user_by( 'email', $email );
+	if ( $user ) {
 		return $user->ID;
 	}
 	return false;
@@ -1791,6 +1808,7 @@ function wp_insert_user( $userdata ) {
 	 *                                          not forced.
 	 *     @type bool     $show_admin_bar_front Whether to show the admin bar on the front end for the user.
 	 *                                          Default true.
+	 *     @type string   $locale               User's locale. Default empty.
 	 * }
 	 * @param WP_User $user   User object.
 	 * @param bool    $update Whether the user is being updated rather than created.
@@ -1953,8 +1971,8 @@ All at ###SITENAME###
 
 			$pass_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: User password change notification email subject. %s: Site name */
-				'subject' => __( '[%s] Notice of Password Change' ),
+				/* translators: Password change notification email subject. %s: Site name */
+				'subject' => __( '[%s] Password Changed' ),
 				'message' => $pass_change_text,
 				'headers' => '',
 			);
@@ -2010,8 +2028,8 @@ All at ###SITENAME###
 
 			$email_change_email = array(
 				'to'      => $user['user_email'],
-				/* translators: User email change notification email subject. %s: Site name */
-				'subject' => __( '[%s] Notice of Email Change' ),
+				/* translators: Email change notification email subject. %s: Site name */
+				'subject' => __( '[%s] Email Changed' ),
 				'message' => $email_change_text,
 				'headers' => '',
 			);
@@ -2197,6 +2215,10 @@ function wp_get_password_hint() {
 function get_password_reset_key( $user ) {
 	global $wpdb, $wp_hasher;
 
+	if ( ! ( $user instanceof WP_User ) ) {
+		return new WP_Error( 'invalidcombo', __( '<strong>ERROR</strong>: There is no account with that username or email address.' ) );
+	}
+
 	/**
 	 * Fires before a new password is retrieved.
 	 *
@@ -2289,16 +2311,16 @@ function check_password_reset_key( $key, $login ) {
 	$key = preg_replace( '/[^a-z0-9]/i', '', $key );
 
 	if ( empty( $key ) || ! is_string( $key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( empty( $login ) || ! is_string( $login ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	$row = $wpdb->get_row( $wpdb->prepare( "SELECT ID, user_activation_key FROM $wpdb->users WHERE user_login = %s", $login ) );
 	if ( ! $row ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( empty( $wp_hasher ) ) {
@@ -2324,7 +2346,7 @@ function check_password_reset_key( $key, $login ) {
 	}
 
 	if ( ! $pass_key ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	$hash_is_correct = $wp_hasher->CheckPassword( $key, $pass_key );
@@ -2333,11 +2355,11 @@ function check_password_reset_key( $key, $login ) {
 		return get_userdata( $row->ID );
 	} elseif ( $hash_is_correct && $expiration_time ) {
 		// Key has an expiration time that's passed
-		return new WP_Error( 'expired_key', __( 'Invalid key' ) );
+		return new WP_Error( 'expired_key', __( 'Invalid key.' ) );
 	}
 
 	if ( hash_equals( $row->user_activation_key, $key ) || ( $hash_is_correct && ! $expiration_time ) ) {
-		$return  = new WP_Error( 'expired_key', __( 'Invalid key' ) );
+		$return  = new WP_Error( 'expired_key', __( 'Invalid key.' ) );
 		$user_id = $row->ID;
 
 		/**
@@ -2354,7 +2376,7 @@ function check_password_reset_key( $key, $login ) {
 		return apply_filters( 'password_reset_key_expired', $return, $user_id );
 	}
 
-	return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+	return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 }
 
 /**
@@ -2692,10 +2714,9 @@ function _wp_get_current_user() {
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
  *
  * @global WP_Error $errors WP_Error object.
- * @global wpdb     $wpdb   WordPress database object.
  */
 function send_confirmation_on_profile_email() {
-	global $errors, $wpdb;
+	global $errors;
 
 	$current_user = wp_get_current_user();
 	if ( ! is_object( $errors ) ) {
@@ -2719,7 +2740,7 @@ function send_confirmation_on_profile_email() {
 			return;
 		}
 
-		if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_email FROM {$wpdb->users} WHERE user_email=%s", $_POST['email'] ) ) ) {
+		if ( email_exists( $_POST['email'] ) ) {
 			$errors->add(
 				'user_email',
 				__( '<strong>ERROR</strong>: The email address is already used.' ),
@@ -2789,7 +2810,8 @@ All at ###SITENAME###
 		$content = str_replace( '###SITENAME###', $sitename, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
-		wp_mail( $_POST['email'], sprintf( __( '[%s] New Email Address' ), $sitename ), $content );
+		/* translators: New email address notification email subject. %s: Site name */
+		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
@@ -2806,9 +2828,13 @@ All at ###SITENAME###
  */
 function new_user_email_admin_notice() {
 	global $pagenow;
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) && $email = get_user_meta( get_current_user_id(), '_new_email', true ) ) {
-		/* translators: %s: New email address */
-		echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+
+	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
+		$email = get_user_meta( get_current_user_id(), '_new_email', true );
+		if ( $email ) {
+			/* translators: %s: New email address */
+			echo '<div class="notice notice-info"><p>' . sprintf( __( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ), '<code>' . esc_html( $email['newemail'] ) . '</code>' ) . '</p></div>';
+		}
 	}
 }
 
@@ -2935,13 +2961,13 @@ function wp_user_personal_data_exporter( $email_address ) {
  * @param int $request_id ID of the request.
  */
 function _wp_privacy_account_request_confirmed( $request_id ) {
-	$request_data = wp_get_user_request_data( $request_id );
+	$request = wp_get_user_request_data( $request_id );
 
-	if ( ! $request_data ) {
+	if ( ! $request ) {
 		return;
 	}
 
-	if ( ! in_array( $request_data->status, array( 'request-pending', 'request-failed' ), true ) ) {
+	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
 		return;
 	}
 
@@ -2965,9 +2991,9 @@ function _wp_privacy_account_request_confirmed( $request_id ) {
  * @param int $request_id The ID of the request.
  */
 function _wp_privacy_send_request_confirmation_notification( $request_id ) {
-	$request_data = wp_get_user_request_data( $request_id );
+	$request = wp_get_user_request_data( $request_id );
 
-	if ( ! is_a( $request_data, 'WP_User_Request' ) || 'request-confirmed' !== $request_data->status ) {
+	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-confirmed' !== $request->status ) {
 		return;
 	}
 
@@ -2977,8 +3003,8 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 		return;
 	}
 
-	$manage_url         = add_query_arg( 'page', $request_data->action_name, admin_url( 'tools.php' ) );
-	$action_description = wp_user_request_action_description( $request_data->action_name );
+	$manage_url         = add_query_arg( 'page', $request->action_name, admin_url( 'tools.php' ) );
+	$action_description = wp_user_request_action_description( $request->action_name );
 
 	/**
 	 * Filters the recipient of the data request confirmation notification.
@@ -2991,14 +3017,14 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param string          $admin_email  The email address of the notification recipient.
-	 * @param WP_User_Request $request_data The request that is initiating the notification.
+	 * @param string          $admin_email The email address of the notification recipient.
+	 * @param WP_User_Request $request     The request that is initiating the notification.
 	 */
-	$admin_email = apply_filters( 'user_request_confirmed_email_to', get_site_option( 'admin_email' ), $request_data );
+	$admin_email = apply_filters( 'user_request_confirmed_email_to', get_site_option( 'admin_email' ), $request );
 
 	$email_data = array(
-		'request'     => $request_data,
-		'user_email'  => $request_data->email,
+		'request'     => $request,
+		'user_email'  => $request->email,
 		'description' => $action_description,
 		'manage_url'  => $manage_url,
 		'sitename'    => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
@@ -3060,7 +3086,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
 	$subject = sprintf(
-		/* translators: 1: Site name. 2: Name of the confirmed action. */
+		/* translators: Privacy data request confirmed notification email subject. 1: Site title, 2: Name of the confirmed action. */
 		__( '[%1$s] Action Confirmed: %2$s' ),
 		$email_data['sitename'],
 		$action_description
@@ -3104,9 +3130,9 @@ All at ###SITENAME###
  * @param int $request_id The privacy request post ID associated with this request.
  */
 function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
-	$request_data = wp_get_user_request_data( $request_id );
+	$request = wp_get_user_request_data( $request_id );
 
-	if ( ! is_a( $request_data, 'WP_User_Request' ) || 'request-completed' !== $request_data->status ) {
+	if ( ! is_a( $request, 'WP_User_Request' ) || 'request-completed' !== $request->status ) {
 		return;
 	}
 
@@ -3116,18 +3142,27 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 		return;
 	}
 
+	// Localize message content for user; fallback to site default for visitors.
+	if ( ! empty( $request->user_id ) ) {
+		$locale = get_user_locale( $request->user_id );
+	} else {
+		$locale = get_locale();
+	}
+
+	$switched_locale = switch_to_locale( $locale );
+
 	/**
 	 * Filters the recipient of the data erasure fulfillment notification.
 	 *
 	 * @since 4.9.6
 	 *
-	 * @param string          $user_email   The email address of the notification recipient.
-	 * @param WP_User_Request $request_data The request that is initiating the notification.
+	 * @param string          $user_email The email address of the notification recipient.
+	 * @param WP_User_Request $request    The request that is initiating the notification.
 	 */
-	$user_email = apply_filters( 'user_erasure_fulfillment_email_to', $request_data->email, $request_data );
+	$user_email = apply_filters( 'user_erasure_fulfillment_email_to', $request->email, $request );
 
 	$email_data = array(
-		'request'            => $request_data,
+		'request'            => $request,
 		'message_recipient'  => $user_email,
 		'privacy_policy_url' => get_privacy_policy_url(),
 		'sitename'           => wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ),
@@ -3135,7 +3170,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	);
 
 	$subject = sprintf(
-		/* translators: %s: Site name. */
+		/* translators: Erasure request fulfilled notification email subject. %s: Site name. */
 		__( '[%s] Erasure Request Fulfilled' ),
 		$email_data['sitename']
 	);
@@ -3226,6 +3261,10 @@ All at ###SITENAME###
 
 	$email_sent = wp_mail( $user_email, $subject, $content );
 
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
 	if ( $email_sent ) {
 		update_post_meta( $request_id, '_wp_user_notified', true );
 	}
@@ -3303,13 +3342,16 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 			'post_type'     => 'user_request',
 			'post_name__in' => array( $action_name ),  // Action name stored in post_name column.
 			'title'         => $email_address, // Email address stored in post_title column.
-			'post_status'   => 'any',
+			'post_status'   => array(
+				'request-pending',
+				'request-confirmed',
+			),
 			'fields'        => 'ids',
 		)
 	);
 
 	if ( $requests_query->found_posts ) {
-		return new WP_Error( 'duplicate_request', __( 'A request for this email address already exists.' ) );
+		return new WP_Error( 'duplicate_request', __( 'An incomplete request for this email address already exists.' ) );
 	}
 
 	$request_id = wp_insert_post(
@@ -3456,7 +3498,7 @@ All at ###SITENAME###
 	$content = str_replace( '###SITENAME###', $email_data['sitename'], $content );
 	$content = str_replace( '###SITEURL###', esc_url_raw( $email_data['siteurl'] ), $content );
 
-	/* translators: Privacy data request subject. 1: Site name, 2: Name of the action */
+	/* translators: Confirm privacy data request notification email subject. 1: Site title, 2: Name of the action */
 	$subject = sprintf( __( '[%1$s] Confirm Action: %2$s' ), $email_data['sitename'], $email_data['description'] );
 
 	/**
@@ -3514,11 +3556,9 @@ function wp_generate_user_request_key( $request_id ) {
 
 	wp_update_post(
 		array(
-			'ID'                => $request_id,
-			'post_status'       => 'request-pending',
-			'post_password'     => $wp_hasher->HashPassword( $key ),
-			'post_modified'     => current_time( 'mysql', false ),
-			'post_modified_gmt' => current_time( 'mysql', true ),
+			'ID'            => $request_id,
+			'post_status'   => 'request-pending',
+			'post_password' => $wp_hasher->HashPassword( $key ),
 		)
 	);
 
@@ -3549,7 +3589,7 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	}
 
 	if ( empty( $key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'missing_key', __( 'Missing confirm key.' ) );
 	}
 
 	if ( empty( $wp_hasher ) ) {
@@ -3561,11 +3601,11 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$saved_key        = $request->confirm_key;
 
 	if ( ! $saved_key ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( ! $key_request_time ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid action' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid action.' ) );
 	}
 
 	/**
@@ -3579,7 +3619,7 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$expiration_time     = $key_request_time + $expiration_duration;
 
 	if ( ! $wp_hasher->CheckPassword( $key, $saved_key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key' ) );
+		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
 	}
 
 	if ( ! $expiration_time || time() > $expiration_time ) {

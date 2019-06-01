@@ -40,7 +40,6 @@ if ( 'upgrade_db' === $step ) {
  * @global string $wp_version
  * @global string $required_php_version
  * @global string $required_mysql_version
- * @global wpdb   $wpdb
  */
 global $wp_version, $required_php_version, $required_mysql_version;
 
@@ -70,7 +69,7 @@ if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 	?>
 </head>
 <body class="wp-core-ui">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>" tabindex="-1"><?php _e( 'WordPress' ); ?></a></p>
+<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
 
 <?php if ( get_option( 'db_version' ) == $wp_db_version || ! is_blog_installed() ) : ?>
 
@@ -80,13 +79,32 @@ if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 
 	<?php
 elseif ( ! $php_compat || ! $mysql_compat ) :
-	if ( ! $mysql_compat && ! $php_compat ) {
-		printf( __( 'You cannot update because <a href="https://codex.wordpress.org/Version_%1$s">WordPress %1$s</a> requires PHP version %2$s or higher and MySQL version %3$s or higher. You are running PHP version %4$s and MySQL version %5$s.' ), $wp_version, $required_php_version, $required_mysql_version, $php_version, $mysql_version );
-	} elseif ( ! $php_compat ) {
-		printf( __( 'You cannot update because <a href="https://codex.wordpress.org/Version_%1$s">WordPress %1$s</a> requires PHP version %2$s or higher. You are running version %3$s.' ), $wp_version, $required_php_version, $php_version );
-	} elseif ( ! $mysql_compat ) {
-		printf( __( 'You cannot update because <a href="https://codex.wordpress.org/Version_%1$s">WordPress %1$s</a> requires MySQL version %2$s or higher. You are running version %3$s.' ), $wp_version, $required_mysql_version, $mysql_version );
+	$version_url = sprintf(
+		/* translators: %s: WordPress version */
+		esc_url( __( 'https://wordpress.org/support/wordpress-version/version-%s/' ) ),
+		sanitize_title( $wp_version )
+	);
+
+	/* translators: %s: Update PHP page URL */
+	$php_update_message = '</p><p>' . sprintf( __( '<a href="%s">Learn more about updating PHP</a>.' ), esc_url( wp_get_update_php_url() ) );
+
+	$annotation = wp_get_update_php_annotation();
+	if ( $annotation ) {
+		$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 	}
+
+	if ( ! $mysql_compat && ! $php_compat ) {
+		/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Minimum required MySQL version number, 5: Current PHP version number, 6: Current MySQL version number */
+		$message = sprintf( __( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires PHP version %3$s or higher and MySQL version %4$s or higher. You are running PHP version %5$s and MySQL version %6$s.' ), $version_url, $wp_version, $required_php_version, $required_mysql_version, $php_version, $mysql_version ) . $php_update_message;
+	} elseif ( ! $php_compat ) {
+		/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required PHP version number, 4: Current PHP version number */
+		$message = sprintf( __( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires PHP version %3$s or higher. You are running version %4$s.' ), $version_url, $wp_version, $required_php_version, $php_version ) . $php_update_message;
+	} elseif ( ! $mysql_compat ) {
+		/* translators: 1: URL to WordPress release notes, 2: WordPress version number, 3: Minimum required MySQL version number, 4: Current MySQL version number */
+		$message = sprintf( __( 'You cannot update because <a href="%1$s">WordPress %2$s</a> requires MySQL version %3$s or higher. You are running version %4$s.' ), $version_url, $wp_version, $required_mysql_version, $mysql_version );
+	}
+
+	echo '<p>' . $message . '</p>';
 	?>
 	<?php
 else :
