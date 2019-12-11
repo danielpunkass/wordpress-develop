@@ -6,22 +6,22 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 get_header();
 ?>
 
-	<section id="primary" class="content-area">
+	<div id="primary" class="content-area">
 		<main id="main" class="site-main">
 
 		<?php if ( have_posts() ) : ?>
 
 			<header class="page-header">
 				<h1 class="page-title">
-					<?php _e( 'Search results for:', 'twentynineteen' ); ?>
+					<?php _e( 'Search results for: ', 'twentynineteen' ); ?>
+					<span class="page-description"><?php echo get_search_query(); ?></span>
 				</h1>
-				<div class="page-description"><?php echo get_search_query(); ?></div>
 			</header><!-- .page-header -->
 
 			<?php
@@ -49,7 +49,7 @@ get_header();
 		endif;
 		?>
 		</main><!-- #main -->
-	</section><!-- #primary -->
+	</div><!-- #primary -->
 
 <?php
 get_footer();

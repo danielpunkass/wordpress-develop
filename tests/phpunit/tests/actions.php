@@ -153,6 +153,25 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertEquals( array( $val1, $val2 ), array_pop( $argsvar3 ) );
 	}
 
+	/**
+	 * Tests PHP 4 notation for calling actions while passing in an object by reference.
+	 *
+	 * @ticket 48312
+	 */
+	function test_action_args_with_php4_syntax() {
+		$a   = new MockAction();
+		$tag = __FUNCTION__;
+		$val = new stdClass();
+
+		add_action( $tag, array( &$a, 'action' ) );
+		// Call the action with PHP 4 notation for passing object by reference.
+		do_action( $tag, array( &$val ) );
+
+		$call_count = $a->get_call_count();
+		$argsvar    = $a->get_args();
+		$this->assertSame( array( $val ), array_pop( $argsvar ) );
+	}
+
 	function test_action_priority() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
@@ -527,7 +546,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$p = new WP_Post( (object) array( 'post_title' => 'Foo' ) );
 
 		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback' ) );
-		do_action_deprecated( 'tests_do_action_deprecated', array( $p ), '4.6' );
+		do_action_deprecated( 'tests_do_action_deprecated', array( $p ), '4.6.0' );
 		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback' ) );
 
 		$this->assertSame( 'Bar', $p->post_title );
@@ -546,7 +565,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$p2 = new WP_Post( (object) array( 'post_title' => 'Foo2' ) );
 
 		add_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
-		do_action_deprecated( 'tests_do_action_deprecated', array( $p1, $p2 ), '4.6' );
+		do_action_deprecated( 'tests_do_action_deprecated', array( $p1, $p2 ), '4.6.0' );
 		remove_action( 'tests_do_action_deprecated', array( __CLASS__, 'deprecated_action_callback_multiple_params' ), 10, 2 );
 
 		$this->assertSame( 'Bar1', $p1->post_title );

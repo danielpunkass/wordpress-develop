@@ -33,7 +33,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		$this->errors = new WP_Error();
 
 		// Check if possible to use ftp functions.
-		if ( ! @include_once( ABSPATH . 'wp-admin/includes/class-ftp.php' ) ) {
+		if ( ! include_once( ABSPATH . 'wp-admin/includes/class-ftp.php' ) ) {
 			return;
 		}
 		$this->ftp = new ftp();
@@ -81,8 +81,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		if ( ! $this->ftp->SetServer( $this->options['hostname'], $this->options['port'] ) ) {
 			$this->errors->add(
 				'connect',
-				/* translators: %s: hostname:port */
 				sprintf(
+					/* translators: %s: hostname:port */
 					__( 'Failed to connect to FTP Server %s' ),
 					$this->options['hostname'] . ':' . $this->options['port']
 				)
@@ -93,8 +93,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		if ( ! $this->ftp->connect() ) {
 			$this->errors->add(
 				'connect',
-				/* translators: %s: hostname:port */
 				sprintf(
+					/* translators: %s: hostname:port */
 					__( 'Failed to connect to FTP Server %s' ),
 					$this->options['hostname'] . ':' . $this->options['port']
 				)
@@ -105,8 +105,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 		if ( ! $this->ftp->login( $this->options['username'], $this->options['password'] ) ) {
 			$this->errors->add(
 				'auth',
-				/* translators: %s: username */
 				sprintf(
+					/* translators: %s: Username. */
 					__( 'Username/Password incorrect for %s' ),
 					$this->options['username']
 				)
@@ -136,7 +136,8 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 
 		$temp = wp_tempnam( $file );
 
-		if ( ! $temphandle = fopen( $temp, 'w+' ) ) {
+		$temphandle = fopen( $temp, 'w+' );
+		if ( ! $temphandle ) {
 			unlink( $temp );
 			return false;
 		}
@@ -190,8 +191,9 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function put_contents( $file, $contents, $mode = false ) {
-		$temp = wp_tempnam( $file );
-		if ( ! $temphandle = @fopen( $temp, 'w+' ) ) {
+		$temp       = wp_tempnam( $file );
+		$temphandle = @fopen( $temp, 'w+' );
+		if ( ! $temphandle ) {
 			unlink( $temp );
 			return false;
 		}
@@ -258,7 +260,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @param string    $file      Path to the file.
 	 * @param int|false $mode      Optional. The permissions as octal number, usually 0644 for files,
 	 *                             0755 for directories. Default false.
-	 * @param bool      $recursive Optional. If set to true, changes file group recursively.
+	 * @param bool      $recursive Optional. If set to true, changes file permissions recursively.
 	 *                             Default false.
 	 * @return bool True on success, false on failure.
 	 */
@@ -371,7 +373,7 @@ class WP_Filesystem_ftpsockets extends WP_Filesystem_Base {
 	 * @since 2.5.0
 	 *
 	 * @param string       $file      Path to the file or directory.
-	 * @param bool         $recursive Optional. If set to true, changes file group recursively.
+	 * @param bool         $recursive Optional. If set to true, deletes files and folders recursively.
 	 *                                Default false.
 	 * @param string|false $type      Type of resource. 'f' for file, 'd' for directory.
 	 *                                Default false.

@@ -20,8 +20,11 @@ ignore_user_abort( true );
 
 /* Don't make the request block till we finish, if possible. */
 if ( function_exists( 'fastcgi_finish_request' ) && version_compare( phpversion(), '7.0.16', '>=' ) ) {
-	header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
-	header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	if ( ! headers_sent() ) {
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	}
+
 	fastcgi_finish_request();
 }
 
@@ -83,7 +86,7 @@ $gmt_time = microtime( true );
 // The cron lock: a unix timestamp from when the cron was spawned.
 $doing_cron_transient = get_transient( 'doing_cron' );
 
-// Use global $doing_wp_cron lock otherwise use the GET lock. If no lock, trying grabbing a new lock.
+// Use global $doing_wp_cron lock, otherwise use the GET lock. If no lock, try to grab a new lock.
 if ( empty( $doing_wp_cron ) ) {
 	if ( empty( $_GET['doing_wp_cron'] ) ) {
 		// Called from external script/job. Try setting a lock.
@@ -118,8 +121,7 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 			$schedule = $v['schedule'];
 
 			if ( $schedule ) {
-				$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-				call_user_func_array( 'wp_reschedule_event', $new_args );
+				wp_reschedule_event( $timestamp, $schedule, $hook, $v['args'] );
 			}
 
 			wp_unschedule_event( $timestamp, $hook, $v['args'] );

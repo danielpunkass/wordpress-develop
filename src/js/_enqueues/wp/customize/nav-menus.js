@@ -387,7 +387,7 @@
 		 *
 		 * @param {Array.<object>} itemTypes List of objects containing type and key.
 		 * @param {string} deprecated Formerly the object parameter.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		loadItems: function( itemTypes, deprecated ) {
 			var self = this, _itemTypes, requestItemTypes = [], params, request, itemTemplate, availableMenuItemContainers = {};
@@ -544,6 +544,7 @@
 			var menuItem,
 				itemName = $( '#custom-menu-item-name' ),
 				itemUrl = $( '#custom-menu-item-url' ),
+				url = itemUrl.val().trim(),
 				urlRegex;
 
 			if ( ! this.currentMenuControl ) {
@@ -567,14 +568,14 @@
 			if ( '' === itemName.val() ) {
 				itemName.addClass( 'invalid' );
 				return;
-			} else if ( ! urlRegex.test( itemUrl.val() ) ) {
+			} else if ( ! urlRegex.test( url ) ) {
 				itemUrl.addClass( 'invalid' );
 				return;
 			}
 
 			menuItem = {
 				'title': itemName.val(),
-				'url': itemUrl.val(),
+				'url': url,
 				'type': 'custom',
 				'type_label': api.Menus.data.l10n.custom_label,
 				'object': 'custom'
@@ -583,7 +584,7 @@
 			this.currentMenuControl.addItemToMenu( menuItem );
 
 			// Reset the custom link form.
-			itemUrl.val( 'http://' );
+			itemUrl.val( '' ).attr( 'placeholder', 'https://' );
 			itemName.val( '' );
 		},
 
@@ -594,7 +595,7 @@
 		 * @private
 		 *
 		 * @param {jQuery.Event} event Event.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		_submitNew: function( event ) {
 			var container;
@@ -620,7 +621,7 @@
 		 * @private
 		 *
 		 * @param {jQuery} container
-		 * @returns {void}
+		 * @return {void}
 		 */
 		submitNew: function( container ) {
 			var panel = this,
@@ -842,7 +843,7 @@
 		 * @since 4.3.0
 		 * @private
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		saveManageColumnsState: _.debounce( function() {
 			var panel = this;
@@ -876,7 +877,7 @@
 		 * @since 4.3.0
 		 * @private
 		 *
-		 * @returns {Array} Fields (columns) that are hidden.
+		 * @return {Array} Fields (columns) that are hidden.
 		 */
 		hidden: function() {
 			return $( '.hide-column-tog' ).not( ':checked' ).map( function() {
@@ -972,7 +973,7 @@
 			 * Update the active field class for the content container for a given checkbox toggle.
 			 *
 			 * @this {jQuery}
-			 * @returns {void}
+			 * @return {void}
 			 */
 			handleFieldActiveToggle = function() {
 				var className = 'field-' + $( this ).val() + '-active';
@@ -1165,7 +1166,7 @@
 		 *
 		 * @since 4.9.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		highlightNewItemButton: function() {
 			api.utils.highlightButton( this.contentContainer.find( '.add-new-menu-item' ), { delay: 2000 } );
@@ -1178,7 +1179,7 @@
 	 * @since 4.9.0
 	 *
 	 * @param {string} [name=''] Nav menu name.
-	 * @returns {wp.customize.Menus.MenuSection} Added nav menu.
+	 * @return {wp.customize.Menus.MenuSection} Added nav menu.
 	 */
 	api.Menus.createNavMenu = function createNavMenu( name ) {
 		var customizeId, placeholderId, setting;
@@ -1262,7 +1263,7 @@
 			 * Get number of non-deleted nav menus.
 			 *
 			 * @since 4.9.0
-			 * @returns {number} Count.
+			 * @return {number} Count.
 			 */
 			function getNavMenuCount() {
 				var count = 0;
@@ -1278,7 +1279,7 @@
 			 * Update visibility of notice to prompt users to create menus.
 			 *
 			 * @since 4.9.0
-			 * @returns {void}
+			 * @return {void}
 			 */
 			function updateNoticeVisibility() {
 				container.find( '.add-new-menu-notice' ).prop( 'hidden', getNavMenuCount() > 0 );
@@ -1289,7 +1290,7 @@
 			 *
 			 * @since 4.9.0
 			 * @param {wp.customize.Setting} setting - Added setting.
-			 * @returns {void}
+			 * @return {void}
 			 */
 			function addChangeEventListener( setting ) {
 				if ( navMenuSettingPattern.test( setting.id ) ) {
@@ -1303,7 +1304,7 @@
 			 *
 			 * @since 4.9.0
 			 * @param {wp.customize.Setting} setting - Removed setting.
-			 * @returns {void}
+			 * @return {void}
 			 */
 			function removeChangeEventListener( setting ) {
 				if ( navMenuSettingPattern.test( setting.id ) ) {
@@ -1438,7 +1439,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {string|null} locationId - The ID of the location to select. `null` clears all selections.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		selectDefaultLocation: function( locationId ) {
 			var locationControl = api.control( this.id + '[locations]' ),
@@ -1869,7 +1870,7 @@
 
 		/**
 		 *
-		 * @returns {number}
+		 * @return {number}
 		 */
 		getDepth: function() {
 			var control = this, setting = control.setting(), depth = 0;
@@ -1920,7 +1921,6 @@
 			control.params.target = settingValue.target;
 			control.params.attr_title = settingValue.attr_title;
 			control.params.classes = _.isArray( settingValue.classes ) ? settingValue.classes.join( ' ' ) : settingValue.classes;
-			control.params.attr_title = settingValue.attr_title;
 			control.params.xfn = settingValue.xfn;
 			control.params.description = settingValue.description;
 			control.params.parent = settingValue.menu_item_parent;
@@ -1962,7 +1962,7 @@
 		 *
 		 * @param {Boolean} expanded
 		 * @param {Object} [params]
-		 * @returns {Boolean} false if state already applied
+		 * @return {Boolean} False if state already applied.
 		 */
 		_toggleExpanded: api.Section.prototype._toggleExpanded,
 
@@ -1970,7 +1970,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @returns {Boolean} false if already expanded
+		 * @return {Boolean} False if already expanded.
 		 */
 		expand: api.Section.prototype.expand,
 
@@ -1990,7 +1990,7 @@
 		 * @since 4.6.0
 		 *
 		 * @param {Object} [params]
-		 * @returns {Boolean} false if already collapsed
+		 * @return {Boolean} False if already collapsed.
 		 */
 		collapse: api.Section.prototype.collapse,
 
@@ -2428,7 +2428,7 @@
 		 * @since 4.9.0
 		 *
 		 * @param {Object.<string,boolean>} selections - A map of location selections.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		setSelections: function( selections ) {
 			this.container.find( '.menu-location' ).each( function( i, checkboxNode ) {
@@ -2954,7 +2954,7 @@
 		 * Add a new item to this menu.
 		 *
 		 * @param {object} item - Value for the nav_menu_item setting to be created.
-		 * @returns {wp.customize.Menus.controlConstructor.nav_menu_item} The newly-created nav_menu_item control instance.
+		 * @return {wp.customize.Menus.controlConstructor.nav_menu_item} The newly-created nav_menu_item control instance.
 		 */
 		addItemToMenu: function( item ) {
 			var menuControl = this, customizeId, settingArgs, setting, menuItemControl, placeholderId, position = 0, priority = 10;
@@ -3027,83 +3027,6 @@
 		}
 	} );
 
-	api.Menus.NewMenuControl = api.Control.extend(/** @lends wp.customize.Menus.NewMenuControl.prototype */{
-
-		/**
-		 * wp.customize.Menus.NewMenuControl
-		 *
-		 * Customizer control for creating new menus and handling deletion of existing menus.
-		 * Note that 'new_menu' must match the WP_Customize_New_Menu_Control::$type.
-		 *
-		 * @constructs wp.customize.Menus.NewMenuControl
-		 * @augments   wp.customize.Control
-		 *
-		 * @deprecated 4.9.0 This class is no longer used due to new menu creation UX.
-		 */
-		initialize: function() {
-			if ( 'undefined' !== typeof console && console.warn ) {
-				console.warn( '[DEPRECATED] wp.customize.NewMenuControl will be removed. Please use wp.customize.Menus.createNavMenu() instead.' );
-			}
-			api.Control.prototype.initialize.apply( this, arguments );
-		},
-
-		/**
-		 * Set up the control.
-		 *
-		 * @deprecated 4.9.0
-		 */
-		ready: function() {
-			this._bindHandlers();
-		},
-
-		_bindHandlers: function() {
-			var self = this,
-				name = $( '#customize-control-new_menu_name input' ),
-				submit = $( '#create-new-menu-submit' );
-			name.on( 'keydown', function( event ) {
-				if ( 13 === event.which ) { // Enter.
-					self.submit();
-				}
-			} );
-			submit.on( 'click', function( event ) {
-				self.submit();
-				event.stopPropagation();
-				event.preventDefault();
-			} );
-		},
-
-		/**
-		 * Create the new menu with the name supplied.
-		 *
-		 * @deprecated 4.9.0
-		 */
-		submit: function() {
-
-			var control = this,
-				container = control.container.closest( '.accordion-section-new-menu' ),
-				nameInput = container.find( '.menu-name-field' ).first(),
-				name = nameInput.val(),
-				menuSection;
-
-			if ( ! name ) {
-				nameInput.addClass( 'invalid' );
-				nameInput.focus();
-				return;
-			}
-
-			menuSection = api.Menus.createNavMenu( name );
-
-			// Clear name field.
-			nameInput.val( '' );
-			nameInput.removeClass( 'invalid' );
-
-			wp.a11y.speak( api.Menus.data.l10n.menuAdded );
-
-			// Focus on the new menu section.
-			menuSection.focus();
-		}
-	});
-
 	/**
 	 * Extends wp.customize.controlConstructor with control constructor for
 	 * menu_location, menu_item, nav_menu, and new_menu.
@@ -3113,7 +3036,6 @@
 		nav_menu_item: api.Menus.MenuItemControl,
 		nav_menu: api.Menus.MenuControl,
 		nav_menu_name: api.Menus.MenuNameControl,
-		new_menu: api.Menus.NewMenuControl, // @todo Remove in a future release. See #42364.
 		nav_menu_locations: api.Menus.MenuLocationsControl,
 		nav_menu_auto_add: api.Menus.MenuAutoAddControl
 	});
@@ -3451,11 +3373,11 @@
 	 * @alias wp.customize.Menus~displayNavMenuName
 	 *
 	 * @param {string} name
-	 * @returns {string}
+	 * @return {string}
 	 */
 	function displayNavMenuName( name ) {
 		name = name || '';
-		name = $( '<div>' ).text( name ).html(); // Emulate esc_html() which is used in wp-admin/nav-menus.php.
+		name = wp.sanitize.stripTagsAndEncodeText( name ); // Remove any potential tags from name.
 		name = $.trim( name );
 		return name || api.Menus.data.l10n.unnamed;
 	}

@@ -197,16 +197,24 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	}
 
 	/**
-	 * Resize multiple images from a single source.
+	 * Create multiple smaller images from a single source.
+	 *
+	 * Attempts to create all sub-sizes and returns the meta data at the end. This
+	 * may result in the server running out of resources. When it fails there may be few
+	 * "orphaned" images left over as the meta data is never returned and saved.
+	 *
+	 * As of 5.3.0 the preferred way to do this is with `make_subsize()`. It creates
+	 * the new images one at a time and allows for the meta data to be saved after
+	 * each new image is created.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param array $sizes {
-	 *     An array of image size arrays. Default sizes are 'small', 'medium', 'medium_large', 'large'.
+	 *     An array of image size data arrays.
 	 *
 	 *     Either a height or width must be provided.
 	 *     If one of the two is set to null, the resize will
-	 *     maintain aspect ratio according to the provided dimension.
+	 *     maintain aspect ratio according to the source image.
 	 *
 	 *     @type array $size {
 	 *         Array of height, width values, and whether to crop.
@@ -237,8 +245,15 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param array $size_data Array of width, height, and whether to crop.
-	 * @return WP_Error|array WP_Error on error, or the image data array for inclusion in the `sizes` array in the image meta.
+	 * @param array $size_data {
+	 *     Array of size data.
+	 *
+	 *     @type int  $width  The maximum width in pixels.
+	 *     @type int  $height The maximum height in pixels.
+	 *     @type bool $crop   Whether to crop the image to exact dimensions.
+	 * }
+	 * @return array|WP_Error The image data array for inclusion in the `sizes` array in the image meta,
+	 *                        WP_Error object on error.
 	 */
 	public function make_subsize( $size_data ) {
 		if ( ! isset( $size_data['width'] ) && ! isset( $size_data['height'] ) ) {
@@ -403,7 +418,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param resource $image
 	 * @param string|null $filename
 	 * @param string|null $mime_type
-	 * @return WP_Error|array
+	 * @return array|WP_Error
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
@@ -436,7 +451,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		// Set correct file permissions
 		$stat  = stat( dirname( $filename ) );
 		$perms = $stat['mode'] & 0000666; //same permissions as parent folder, strip off the executable bits
-		@ chmod( $filename, $perms );
+		chmod( $filename, $perms );
 
 		/**
 		 * Filters the name of the saved image file.

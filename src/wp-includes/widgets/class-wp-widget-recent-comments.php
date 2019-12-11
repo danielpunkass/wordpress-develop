@@ -53,9 +53,13 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			|| ! apply_filters( 'show_recent_comments_widget_style', true, $this->id_base ) ) {
 			return;
 		}
-		?>
-		<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
-		<?php
+
+		$type_attr = current_theme_supports( 'html5', 'style' ) ? '' : ' type="text/css"';
+
+		printf(
+			'<style%s>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>',
+			$type_attr
+		);
 	}
 
 	/**
@@ -84,18 +88,18 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			$number = 5;
 		}
 
-		/**
-		 * Filters the arguments for the Recent Comments widget.
-		 *
-		 * @since 3.4.0
-		 * @since 4.9.0 Added the `$instance` parameter.
-		 *
-		 * @see WP_Comment_Query::query() for information on accepted arguments.
-		 *
-		 * @param array $comment_args An array of arguments used to retrieve the recent comments.
-		 * @param array $instance     Array of settings for the current widget.
-		 */
 		$comments = get_comments(
+			/**
+			 * Filters the arguments for the Recent Comments widget.
+			 *
+			 * @since 3.4.0
+			 * @since 4.9.0 Added the `$instance` parameter.
+			 *
+			 * @see WP_Comment_Query::query() for information on accepted arguments.
+			 *
+			 * @param array $comment_args An array of arguments used to retrieve the recent comments.
+			 * @param array $instance     Array of settings for the current widget.
+			 */
 			apply_filters(
 				'widget_comments_args',
 				array(
@@ -120,8 +124,8 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 
 			foreach ( (array) $comments as $comment ) {
 				$output .= '<li class="recentcomments">';
-				/* translators: comments widget: 1: comment author, 2: post link */
 				$output .= sprintf(
+					/* translators: Comments widget. 1: Comment author, 2: Post link. */
 					_x( '%1$s on %2$s', 'widgets' ),
 					'<span class="comment-author-link">' . get_comment_author_link( $comment ) . '</span>',
 					'<a href="' . esc_url( get_comment_link( $comment ) ) . '">' . get_the_title( $comment->comment_post_ID ) . '</a>'

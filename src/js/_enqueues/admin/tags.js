@@ -11,6 +11,8 @@
 
 jQuery(document).ready(function($) {
 
+	var addingTerm = false;
+
 	/**
 	 * Adds an event handler to the delete term link on the term overview page.
 	 *
@@ -18,7 +20,7 @@ jQuery(document).ready(function($) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @returns boolean Always returns false to cancel the default event handling.
+	 * @return {boolean} Always returns false to cancel the default event handling.
 	 */
 	$( '#the-list' ).on( 'click', '.delete-tag', function() {
 		var t = $(this), tr = t.parents('tr'), r = true, data;
@@ -35,7 +37,7 @@ jQuery(document).ready(function($) {
 			 *
 			 * @param {string} r The response from the server.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 			$.post(ajaxurl, data, function(r){
 				if ( '1' == r ) {
@@ -73,7 +75,7 @@ jQuery(document).ready(function($) {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$( '#edittag' ).on( 'click', '.delete', function( e ) {
 		if ( 'undefined' === typeof showNotice ) {
@@ -94,7 +96,7 @@ jQuery(document).ready(function($) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @returns boolean Always returns false to cancel the default event handling.
+	 * @return {boolean} Always returns false to cancel the default event handling.
 	 */
 	$('#submit').click(function(){
 		var form = $(this).parents('form');
@@ -102,15 +104,26 @@ jQuery(document).ready(function($) {
 		if ( ! validateForm( form ) )
 			return false;
 
+		if ( addingTerm ) {
+			// If we're adding a term, noop the button to avoid duplicate requests.
+			return false;
+		}
+
+		addingTerm = true;
+		form.find( '.submit .spinner' ).addClass( 'is-active' );
+
 		/**
 		 * Does a request to the server to add a new term to the database
 		 *
 		 * @param {string} r The response from the server.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		$.post(ajaxurl, $('#addtag').serialize(), function(r){
 			var res, parent, term, indent, i;
+
+			addingTerm = false;
+			form.find( '.submit .spinner' ).removeClass( 'is-active' );
 
 			$('#ajax-response').empty();
 			res = wpAjax.parseAjaxResponse( r, 'ajax-response' );

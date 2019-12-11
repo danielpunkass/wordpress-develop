@@ -25,7 +25,8 @@ module.exports = function(grunt) {
 			'wp-content/themes/twenty*/**',
 			'wp-content/plugins/index.php',
 			'wp-content/plugins/hello.php',
-			'wp-content/plugins/akismet/**'
+			'wp-content/plugins/akismet/**',
+			'!wp-content/themes/twenty*/node_modules/**'
 		],
 		changedFiles = {
 			php: []
@@ -51,18 +52,6 @@ module.exports = function(grunt) {
 			options: {
 				processors: [
 					autoprefixer({
-						browsers: [
-							'> 1%',
-							'ie >= 11',
-							'last 1 Android versions',
-							'last 1 ChromeAndroid versions',
-							'last 2 Chrome versions',
-							'last 2 Firefox versions',
-							'last 2 Safari versions',
-							'last 2 iOS versions',
-							'last 2 Edge versions',
-							'last 2 Opera versions'
-						],
 						cascade: false
 					})
 				]
@@ -94,7 +83,12 @@ module.exports = function(grunt) {
 			files: {
 				src: [
 					WORKING_DIR + 'wp-admin/css/*.min.css',
+					WORKING_DIR + 'wp-admin/css/*-rtl*.css',
+					WORKING_DIR + 'wp-admin/js/**/*.min.js',
 					WORKING_DIR + 'wp-includes/css/*.min.css',
+					WORKING_DIR + 'wp-includes/css/*-rtl*.css',
+					WORKING_DIR + 'wp-includes/js/*.min.js',
+					WORKING_DIR + 'wp-includes/js/dist/*.min.js',
 					WORKING_DIR + 'wp-admin/css/colors/*/*.css'
 				]
 			}
@@ -107,9 +101,9 @@ module.exports = function(grunt) {
 			}),
 			css: [
 				WORKING_DIR + 'wp-admin/css/*.min.css',
-				WORKING_DIR + 'wp-admin/css/*rtl*',
+				WORKING_DIR + 'wp-admin/css/*-rtl*.css',
 				WORKING_DIR + 'wp-includes/css/*.min.css',
-				WORKING_DIR + 'wp-includes/css/*rtl*',
+				WORKING_DIR + 'wp-includes/css/*-rtl*.css',
 				WORKING_DIR + 'wp-admin/css/colors/**/*.css'
 			],
 			js: [
@@ -168,12 +162,15 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/backbone.js' ]: [ './node_modules/backbone/backbone.js' ],
 						[ WORKING_DIR + 'wp-includes/js/clipboard.js' ]: [ './node_modules/clipboard/dist/clipboard.js' ],
 						[ WORKING_DIR + 'wp-includes/js/hoverIntent.js' ]: [ './node_modules/jquery-hoverintent/jquery.hoverIntent.js' ],
+
+						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying)
+						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/2/twemoji.js' ],
+						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
 					},
 					{
@@ -303,7 +300,6 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-includes/js/quicktags.js' ]: [ './src/js/_enqueues/lib/quicktags.js' ],
 					[ WORKING_DIR + 'wp-includes/js/shortcode.js' ]: [ './src/js/_enqueues/wp/shortcode.js' ],
 					[ WORKING_DIR + 'wp-includes/js/utils.js' ]: [ './src/js/_enqueues/lib/cookies.js' ],
-					[ WORKING_DIR + 'wp-includes/js/wp-a11y.js' ]: [ './src/js/_enqueues/wp/a11y.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-ajax-response.js' ]: [ './src/js/_enqueues/lib/ajax-response.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-api.js' ]: [ './src/js/_enqueues/wp/api.js' ],
 					[ WORKING_DIR + 'wp-includes/js/wp-auth-check.js' ]: [ './src/js/_enqueues/lib/auth-check.js' ],
@@ -554,7 +550,8 @@ module.exports = function(grunt) {
 					// Third party scripts
 					'!twenty{fourteen,fifteen,sixteen}/js/html5.js',
 					'!twentyseventeen/assets/js/html5.js',
-					'!twentyseventeen/assets/js/jquery.scrollTo.js'
+					'!twentyseventeen/assets/js/jquery.scrollTo.js',
+					'!twentytwenty/node_modules/**'
 				]
 			},
 			media: {
@@ -676,8 +673,9 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				ASCIIOnly: true,
-				screwIE8: false
+				output: {
+					ascii_only: true
+				}
 			},
 			core: {
 				expand: true,
@@ -717,7 +715,9 @@ module.exports = function(grunt) {
 			jqueryui: {
 				options: {
 					// Preserve comments that start with a bang.
-					preserveComments: /^!/
+					output: {
+						comments: /^!/
+					}
 				},
 				expand: true,
 				cwd: 'node_modules/jquery-ui/ui/',
@@ -846,7 +846,6 @@ module.exports = function(grunt) {
 					'src/wp-includes/js/quicktags.js': 'src/js/_enqueues/lib/quicktags.js',
 					'src/wp-includes/js/shortcode.js': 'src/js/_enqueues/wp/shortcode.js',
 					'src/wp-includes/js/utils.js': 'src/js/_enqueues/lib/cookies.js',
-					'src/wp-includes/js/wp-a11y.js': 'src/js/_enqueues/wp/a11y.js',
 					'src/wp-includes/js/wp-ajax-response.js': 'src/js/_enqueues/lib/ajax-response.js',
 					'src/wp-includes/js/wp-api.js': 'src/js/_enqueues/wp/api.js',
 					'src/wp-includes/js/wp-auth-check.js': 'src/js/_enqueues/lib/auth-check.js',
@@ -1021,7 +1020,7 @@ module.exports = function(grunt) {
 								grunt.log.writeln( 'Fetching list of Twemoji files...' );
 
 								// Fetch a list of the files that Twemoji supplies
-								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/branches/gh-pages/2/assets' ] );
+								files = spawn( 'svn', [ 'ls', 'https://github.com/twitter/twemoji.git/trunk/assets/svg' ] );
 								if ( 0 !== files.status ) {
 									grunt.fatal( 'Unable to fetch Twemoji file list' );
 								}
@@ -1029,7 +1028,7 @@ module.exports = function(grunt) {
 								entities = files.stdout.toString();
 
 								// Tidy up the file list
-								entities = entities.replace( /\.ai/g, '' );
+								entities = entities.replace( /\.svg/g, '' );
 								entities = entities.replace( /^$/g, '' );
 
 								// Convert the emoji entities to HTML entities
@@ -1438,10 +1437,36 @@ module.exports = function(grunt) {
 		} );
 	} );
 
+	grunt.registerTask( 'lint:php', 'Runs the code linter on changed files.', function() {
+		var done = this.async();
+		var flags = this.flags;
+		var args = changedFiles.php;
+		if ( flags.travisErrors ) {
+			// We can check the entire codebase for coding standards errors.
+			args = [ 'lint:errors' ];
+		} else if ( flags.travisWarnings ) {
+			// We can check the tests directory for errors and warnings.
+			args = [ 'lint', 'tests' ];
+		} else {
+			args.unshift( 'lint' );
+		}
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			if ( flags.error && error ) {
+				done( false );
+			} else {
+				done( true );
+			}
+		} );
+	} );
+
 	// Travis CI tasks.
 	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
-	grunt.registerTask('travis:format', 'Runs Code formatting Travis CI tasks.', [ 'format:php:error' ]);
+	grunt.registerTask('travis:phpcs', 'Runs PHP Coding Standards Travis CI tasks.', [ 'format:php:error', 'lint:php:travisErrors:error', 'lint:php:travisWarnings:error' ]);
 
 	// Patch task.
 	grunt.renameTask('patch_wordpress', 'patch');

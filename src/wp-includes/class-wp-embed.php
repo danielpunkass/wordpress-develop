@@ -170,17 +170,18 @@ class WP_Embed {
 		foreach ( $this->handlers as $priority => $handlers ) {
 			foreach ( $handlers as $id => $handler ) {
 				if ( preg_match( $handler['regex'], $url, $matches ) && is_callable( $handler['callback'] ) ) {
-					if ( false !== $return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr ) ) {
+					$return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr );
+					if ( false !== $return ) {
 						/**
-						 * Filters the returned embed handler.
+						 * Filters the returned embed HTML.
 						 *
 						 * @since 2.9.0
 						 *
 						 * @see WP_Embed::shortcode()
 						 *
-						 * @param mixed  $return The shortcode callback function to call.
-						 * @param string $url    The attempted embed URL.
-						 * @param array  $attr   An array of shortcode attributes.
+						 * @param string|false $return The HTML result of the shortcode, or false on failure.
+						 * @param string       $url    The embed URL.
+						 * @param array        $attr   An array of shortcode attributes.
 						 */
 						return apply_filters( 'embed_handler_html', $return, $url, $attr );
 					}
@@ -247,10 +248,10 @@ class WP_Embed {
 				 *
 				 * @see WP_Embed::shortcode()
 				 *
-				 * @param mixed  $cache   The cached HTML result, stored in post meta.
-				 * @param string $url     The attempted embed URL.
-				 * @param array  $attr    An array of shortcode attributes.
-				 * @param int    $post_ID Post ID.
+				 * @param string|false $cache   The cached HTML result, stored in post meta.
+				 * @param string       $url     The attempted embed URL.
+				 * @param array        $attr    An array of shortcode attributes.
+				 * @param int          $post_ID Post ID.
 				 */
 				return apply_filters( 'embed_oembed_html', $cache, $url, $attr, $post_ID );
 			}

@@ -463,7 +463,7 @@ class WP_Rewrite {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return array Page rewrite rules.
+	 * @return string[] Page rewrite rules.
 	 */
 	public function page_rewrite_rules() {
 		// The extra .? at the beginning prevents clashes with other regular expressions in the rules array.
@@ -854,7 +854,7 @@ class WP_Rewrite {
 	 *                                    over and rewrite rules built for each in-turn. Default true.
 	 * @param bool   $endpoints           Optional. Whether endpoints should be applied to the generated rewrite rules.
 	 *                                    Default true.
-	 * @return array Rewrite rule list.
+	 * @return string[] Array of rewrite rules keyed by their regex pattern.
 	 */
 	public function generate_rewrite_rules( $permalink_structure, $ep_mask = EP_NONE, $paged = true, $feed = true, $forcomments = false, $walk_dirs = true, $endpoints = true ) {
 		// Build a regex to match the feed section of URLs, something like (feed|atom|rss|rss2)/?
@@ -1250,7 +1250,7 @@ class WP_Rewrite {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return array An associate array of matches and queries.
+	 * @return string[] An associative array of matches and queries.
 	 */
 	public function rewrite_rules() {
 		$rewrite = array();
@@ -1287,7 +1287,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $post_rewrite The rewrite rules for posts.
+		 * @param string[] $post_rewrite Array of rewrite rules for posts, keyed by their regex pattern.
 		 */
 		$post_rewrite = apply_filters( 'post_rewrite_rules', $post_rewrite );
 
@@ -1301,7 +1301,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $date_rewrite The rewrite rules for date archives.
+		 * @param string[] $date_rewrite Array of rewrite rules for date archives, keyed by their regex pattern.
 		 */
 		$date_rewrite = apply_filters( 'date_rewrite_rules', $date_rewrite );
 
@@ -1316,7 +1316,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $root_rewrite The root-level rewrite rules.
+		 * @param string[] $root_rewrite Array of root-level rewrite rules, keyed by their regex pattern.
 		 */
 		$root_rewrite = apply_filters( 'root_rewrite_rules', $root_rewrite );
 
@@ -1330,7 +1330,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $comments_rewrite The rewrite rules for the site-wide comments feeds.
+		 * @param string[] $comments_rewrite Array of rewrite rules for the site-wide comments feeds, keyed by their regex pattern.
 		 */
 		$comments_rewrite = apply_filters( 'comments_rewrite_rules', $comments_rewrite );
 
@@ -1346,7 +1346,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $search_rewrite The rewrite rules for search queries.
+		 * @param string[] $search_rewrite Array of rewrite rules for search queries, keyed by their regex pattern.
 		 */
 		$search_rewrite = apply_filters( 'search_rewrite_rules', $search_rewrite );
 
@@ -1361,7 +1361,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $author_rewrite The rewrite rules for author archives.
+		 * @param string[] $author_rewrite Array of rewrite rules for author archives, keyed by their regex pattern.
 		 */
 		$author_rewrite = apply_filters( 'author_rewrite_rules', $author_rewrite );
 
@@ -1373,7 +1373,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $page_rewrite The rewrite rules for the "page" post type.
+		 * @param string[] $page_rewrite Array of rewrite rules for the "page" post type, keyed by their regex pattern.
 		 */
 		$page_rewrite = apply_filters( 'page_rewrite_rules', $page_rewrite );
 
@@ -1398,7 +1398,7 @@ class WP_Rewrite {
 			 *
 			 * @since 3.1.0
 			 *
-			 * @param array $rules The rewrite rules generated for the current permastruct.
+			 * @param string[] $rules Array of rewrite rules generated for the current permastruct, keyed by their regex pattern.
 			 */
 			$rules = apply_filters( "{$permastructname}_rewrite_rules", $rules );
 			if ( 'post_tag' == $permastructname ) {
@@ -1407,11 +1407,11 @@ class WP_Rewrite {
 				 * Filters rewrite rules used specifically for Tags.
 				 *
 				 * @since 2.3.0
-				 * @deprecated 3.1.0 Use 'post_tag_rewrite_rules' instead
+				 * @deprecated 3.1.0 Use {@see 'post_tag_rewrite_rules'} instead.
 				 *
-				 * @param array $rules The rewrite rules generated for tags.
+				 * @param string[] $rules Array of rewrite rules generated for tags, keyed by their regex pattern.
 				 */
-				$rules = apply_filters( 'tag_rewrite_rules', $rules );
+				$rules = apply_filters_deprecated( 'tag_rewrite_rules', array( $rules ), '3.1.0', 'post_tag_rewrite_rules' );
 			}
 
 			$this->extra_rules_top = array_merge( $this->extra_rules_top, $rules );
@@ -1438,7 +1438,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param array $this->rules The compiled array of rewrite rules.
+		 * @param string[] $this->rules The compiled array of rewrite rules, keyed by their regex pattern.
 		 */
 		$this->rules = apply_filters( 'rewrite_rules_array', $this->rules );
 
@@ -1455,7 +1455,7 @@ class WP_Rewrite {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return array Rewrite rules.
+	 * @return string[] Array of rewrite rules keyed by their regex pattern.
 	 */
 	public function wp_rewrite_rules() {
 		$this->rules = get_option( 'rewrite_rules' );
@@ -1556,11 +1556,11 @@ class WP_Rewrite {
 		 * Filters the list of rewrite rules formatted for output to an .htaccess file.
 		 *
 		 * @since 1.5.0
-		 * @deprecated 1.5.0 Use the mod_rewrite_rules filter instead.
+		 * @deprecated 1.5.0 Use the {@see 'mod_rewrite_rules'} filter instead.
 		 *
 		 * @param string $rules mod_rewrite Rewrite rules formatted for .htaccess.
 		 */
-		return apply_filters( 'rewrite_rules', $rules );
+		return apply_filters_deprecated( 'rewrite_rules', array( $rules ), '1.5.0', 'mod_rewrite_rules' );
 	}
 
 	/**
@@ -1672,7 +1672,7 @@ class WP_Rewrite {
 	 * @since 4.3.0 Added support for skipping query var registration by passing `false` to `$query_var`.
 	 *
 	 * @see add_rewrite_endpoint() for full documentation.
-	 * @global WP $wp
+	 * @global WP $wp Current WordPress environment instance.
 	 *
 	 * @param string      $name      Name of the endpoint.
 	 * @param int         $places    Endpoint mask describing the places the endpoint should be added.
@@ -1684,7 +1684,7 @@ class WP_Rewrite {
 		global $wp;
 
 		// For backward compatibility, if null has explicitly been passed as `$query_var`, assume `true`.
-		if ( true === $query_var || null === func_get_arg( 2 ) ) {
+		if ( true === $query_var || null === $query_var ) {
 			$query_var = $name;
 		}
 		$this->endpoints[] = array( $places, $name, $query_var );
@@ -1834,7 +1834,9 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 */
 	public function init() {
-		$this->extra_rules         = $this->non_wp_rules = $this->endpoints = array();
+		$this->extra_rules         = array();
+		$this->non_wp_rules        = array();
+		$this->endpoints           = array();
 		$this->permalink_structure = get_option( 'permalink_structure' );
 		$this->front               = substr( $this->permalink_structure, 0, strpos( $this->permalink_structure, '%' ) );
 		$this->root                = '';

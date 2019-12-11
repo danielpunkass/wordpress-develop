@@ -113,7 +113,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function addedLine( $line ) {
-		return "<td class='diff-addedline'>{$line}</td>";
+		return "<td class='diff-addedline'><span aria-hidden='true' class='dashicons dashicons-plus'></span><span class='screen-reader-text'>" . __( 'Added:' ) . " </span>{$line}</td>";
 
 	}
 
@@ -124,7 +124,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function deletedLine( $line ) {
-		return "<td class='diff-deletedline'>{$line}</td>";
+		return "<td class='diff-deletedline'><span aria-hidden='true' class='dashicons dashicons-minus'></span><span class='screen-reader-text'>" . __( 'Deleted:' ) . " </span>{$line}</td>";
 	}
 
 	/**
@@ -134,7 +134,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return string
 	 */
 	public function contextLine( $line ) {
-		return "<td class='diff-context'>{$line}</td>";
+		return "<td class='diff-context'><span class='screen-reader-text'>" . __( 'Unchanged:' ) . " </span>{$line}</td>";
 	}
 
 	/**
@@ -168,9 +168,9 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 				 *
 				 * @since 4.1.0
 				 *
-				 * @param String $processed_line The processed diffed line.
-				 * @param String $line           The unprocessed diffed line.
-				 * @param string null            The line context. Values are 'added', 'deleted' or 'unchanged'.
+				 * @param string $processed_line The processed diffed line.
+				 * @param string $line           The unprocessed diffed line.
+				 * @param string $context        The line context. Values are 'added', 'deleted' or 'unchanged'.
 				 */
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'added' );
 			}
@@ -400,8 +400,9 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 		ksort( $final_matches );
 
 		// Stores rows and blanks for each column.
-		$orig_rows  = $orig_rows_copy = array_keys( $orig_matches );
-		$final_rows = array_keys( $final_matches );
+		$orig_rows      = array_keys( $orig_matches );
+		$orig_rows_copy = $orig_rows;
+		$final_rows     = array_keys( $final_matches );
 
 		// Interleaves rows with blanks to keep matches aligned.
 		// We may end up with some extraneous blank rows, but we'll just ignore them later.

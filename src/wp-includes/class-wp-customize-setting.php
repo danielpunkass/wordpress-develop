@@ -13,6 +13,7 @@
  * Handles saving and sanitizing of settings.
  *
  * @since 3.4.0
+ * @link https://developer.wordpress.org/themes/customize-api
  *
  * @see WP_Customize_Manager
  */
@@ -70,8 +71,6 @@ class WP_Customize_Setting {
 	 *
 	 * Set this value to 'postMessage' to enable a custom JavaScript handler to render changes to this setting
 	 * as opposed to reloading the whole page.
-	 *
-	 * @link https://developer.wordpress.org/themes/customize-api
 	 *
 	 * @since 3.4.0
 	 * @var string
@@ -815,11 +814,11 @@ class WP_Customize_Setting {
 	 * @return bool False if theme doesn't support the setting or user can't change setting, otherwise true.
 	 */
 	final public function check_capabilities() {
-		if ( $this->capability && ! call_user_func_array( 'current_user_can', (array) $this->capability ) ) {
+		if ( $this->capability && ! current_user_can( $this->capability ) ) {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
 			return false;
 		}
 

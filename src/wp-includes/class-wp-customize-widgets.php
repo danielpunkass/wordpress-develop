@@ -333,10 +333,10 @@ final class WP_Customize_Widgets {
 	 */
 	public function customize_controls_init() {
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
-		do_action( 'load-widgets.php' );
+		do_action( 'load-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
-		do_action( 'widgets.php' );
+		do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/widgets.php */
 		do_action( 'sidebar_admin_setup' );
@@ -621,7 +621,7 @@ final class WP_Customize_Widgets {
 	 * @since 3.9.0
 	 *
 	 * @param string $setting_id Widget setting ID.
-	 * @return WP_Error|array Array containing a widget's id_base and number components,
+	 * @return array|WP_Error Array containing a widget's id_base and number components,
 	 *                        or a WP_Error object.
 	 */
 	public function parse_widget_setting_id( $setting_id ) {
@@ -643,7 +643,7 @@ final class WP_Customize_Widgets {
 	 */
 	public function print_styles() {
 		/** This action is documented in wp-admin/admin-header.php */
-		do_action( 'admin_print_styles-widgets.php' );
+		do_action( 'admin_print_styles-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/admin-header.php */
 		do_action( 'admin_print_styles' );
@@ -657,7 +657,7 @@ final class WP_Customize_Widgets {
 	 */
 	public function print_scripts() {
 		/** This action is documented in wp-admin/admin-header.php */
-		do_action( 'admin_print_scripts-widgets.php' );
+		do_action( 'admin_print_scripts-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/admin-header.php */
 		do_action( 'admin_print_scripts' );
@@ -732,7 +732,7 @@ final class WP_Customize_Widgets {
 		for ( $non_rendered_count = 2; $non_rendered_count < $registered_sidebar_count; $non_rendered_count++ ) {
 			$some_non_rendered_areas_messages[ $non_rendered_count ] = html_entity_decode(
 				sprintf(
-					/* translators: %s: the number of other widget areas registered but not rendered */
+					/* translators: %s: The number of other widget areas registered but not rendered. */
 					_n(
 						'Your theme has %s other widget area, but this particular page doesn&#8217;t display it.',
 						'Your theme has %s other widget areas, but this particular page doesn&#8217;t display them.',
@@ -756,7 +756,7 @@ final class WP_Customize_Widgets {
 		} else {
 			$no_areas_shown_message = html_entity_decode(
 				sprintf(
-					/* translators: %s: the total number of widget areas registered */
+					/* translators: %s: The total number of widget areas registered. */
 					_n(
 						'Your theme has %s widget area, but this particular page doesn&#8217;t display it.',
 						'Your theme has %s widget areas, but this particular page doesn&#8217;t display them.',
@@ -787,7 +787,7 @@ final class WP_Customize_Widgets {
 				'reorderModeOn'    => __( 'Reorder mode enabled' ),
 				'reorderModeOff'   => __( 'Reorder mode closed' ),
 				'reorderLabelOn'   => esc_attr__( 'Reorder widgets' ),
-				/* translators: %d: the number of widgets found */
+				/* translators: %d: The number of widgets found. */
 				'widgetsFound'     => __( 'Number of widgets found: %d' ),
 				'noWidgetsFound'   => __( 'No widgets found.' ),
 			),
@@ -825,7 +825,7 @@ final class WP_Customize_Widgets {
 				<h3>
 					<span class="customize-action">
 					<?php
-						/* translators: &#9656; is the unicode right-pointing triangle, and %s is the section title in the Customizer */
+						/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
 						echo sprintf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( 'widgets' )->title ) );
 					?>
 					</span>
@@ -860,13 +860,13 @@ final class WP_Customize_Widgets {
 	 */
 	public function print_footer_scripts() {
 		/** This action is documented in wp-admin/admin-footer.php */
-		do_action( 'admin_print_footer_scripts-widgets.php' );
+		do_action( 'admin_print_footer_scripts-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/admin-footer.php */
 		do_action( 'admin_print_footer_scripts' );
 
 		/** This action is documented in wp-admin/admin-footer.php */
-		do_action( 'admin_footer-widgets.php' );
+		do_action( 'admin_footer-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
 	/**
@@ -1050,7 +1050,7 @@ final class WP_Customize_Widgets {
 		$args[0]['before_widget_content'] = '<div class="widget-content">';
 		$args[0]['after_widget_content']  = '</div><!-- .widget-content -->';
 		ob_start();
-		call_user_func_array( 'wp_widget_control', $args );
+		wp_widget_control( ...$args );
 		$control_tpl = ob_get_clean();
 		return $control_tpl;
 	}
@@ -1104,7 +1104,7 @@ final class WP_Customize_Widgets {
 	 * @since 4.2.0
 	 *
 	 * @param  array $nonces Array of nonces.
-	 * @return array $nonces Array of nonces.
+	 * @return array Array of nonces.
 	 */
 	public function refresh_nonces( $nonces ) {
 		$nonces['update-widget'] = wp_create_nonce( 'update-widget' );
@@ -1392,7 +1392,7 @@ final class WP_Customize_Widgets {
 	 * @global array $wp_registered_widget_controls
 	 *
 	 * @param  string $widget_id Widget ID.
-	 * @return WP_Error|array Array containing the updated widget information.
+	 * @return array|WP_Error Array containing the updated widget information.
 	 *                        A WP_Error object, otherwise.
 	 */
 	public function call_widget_update( $widget_id ) {
@@ -1438,11 +1438,13 @@ final class WP_Customize_Widgets {
 				$value                         = array();
 				$value[ $parsed_id['number'] ] = $instance;
 				$key                           = 'widget-' . $parsed_id['id_base'];
-				$_REQUEST[ $key ]              = $_POST[ $key ] = wp_slash( $value );
+				$_REQUEST[ $key ]              = wp_slash( $value );
+				$_POST[ $key ]                 = $_REQUEST[ $key ];
 				$added_input_vars[]            = $key;
 			} else {
 				foreach ( $instance as $key => $value ) {
-					$_REQUEST[ $key ]   = $_POST[ $key ] = wp_slash( $value );
+					$_REQUEST[ $key ]   = wp_slash( $value );
+					$_POST[ $key ]      = $_REQUEST[ $key ];
 					$added_input_vars[] = $key;
 				}
 			}
@@ -1536,10 +1538,10 @@ final class WP_Customize_Widgets {
 		}
 
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
-		do_action( 'load-widgets.php' );
+		do_action( 'load-widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
-		do_action( 'widgets.php' );
+		do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 		/** This action is documented in wp-admin/widgets.php */
 		do_action( 'sidebar_admin_setup' );
@@ -1856,8 +1858,9 @@ final class WP_Customize_Widgets {
 
 		// Render the widget.
 		ob_start();
-		dynamic_sidebar( $this->rendering_sidebar_id = $context['sidebar_id'] );
-		$container                                   = ob_get_clean();
+		$this->rendering_sidebar_id = $context['sidebar_id'];
+		dynamic_sidebar( $this->rendering_sidebar_id );
+		$container = ob_get_clean();
 
 		// Reset variables for next partial render.
 		remove_filter( 'sidebars_widgets', $filter_callback, 1000 );
@@ -1968,7 +1971,7 @@ final class WP_Customize_Widgets {
 	 */
 	public function capture_filter_pre_update_option( $new_value, $option_name, $old_value ) {
 		if ( $this->is_option_capture_ignored( $option_name ) ) {
-			return;
+			return $new_value;
 		}
 
 		if ( ! isset( $this->_captured_options[ $option_name ] ) ) {

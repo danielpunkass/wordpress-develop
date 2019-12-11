@@ -188,7 +188,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 *
 	 * @param array $exporters List of data exporters.
-	 * @return array $exporters List of data exporters.
+	 * @return array List of data exporters.
 	 */
 	public function filter_exporter_callback_value( $exporters ) {
 		$exporters[ self::$exporter_key ]['callback'] = $this->new_callback_value;
@@ -211,7 +211,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $exporters List of data exporters.
 	 *
-	 * @return array $exporters List of data exporters.
+	 * @return array List of data exporters.
 	 */
 	public function filter_unset_exporter_key( $exporters ) {
 		if ( false === $this->key_to_unset ) {
@@ -273,15 +273,11 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test requests do not succeed on multisite when the current user is not a network admin.
 	 *
-	 * @group multisite
-	 *
 	 * @ticket 43438
+	 * @group multisite
+	 * @group ms-required
 	 */
 	public function test_error_when_current_user_missing_required_capability_multisite() {
-		if ( ! is_multisite() ) {
-			$this->markTestSkipped( 'This test only runs on multisite.' );
-		}
-
 		revoke_super_admin( get_current_user_id() );
 
 		$this->_make_ajax_call();
@@ -589,7 +585,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function callback_missing_data_response( $email_address, $page = 1 ) {
 		$response = $this->callback_custom_personal_data_exporter( $email_address, $page );
@@ -625,7 +621,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @param  string $email_address The requester's email address.
 	 * @param  int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function callback_missing_data_array_response( $email_address, $page = 1 ) {
 		$response         = $this->callback_custom_personal_data_exporter( $email_address, $page );
@@ -660,7 +656,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $return Export data.
+	 * @return array Export data.
 	 */
 	public function callback_missing_done_response( $email_address, $page = 1 ) {
 		$response = $this->callback_custom_personal_data_exporter( $email_address, $page );
@@ -739,7 +735,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @param bool   $send_as_email   Whether the final results of the export should be emailed to the user.
 	 * @param string $exporter_key    The key (slug) of the exporter that provided this data.
 	 *
-	 * @return array $response The personal data for the given exporter and page.
+	 * @return array The personal data for the given exporter and page.
 	 */
 	public function filter_exporter_data_response( $response, $exporter_index, $email_address, $page, $request_id, $send_as_email, $exporter_key ) {
 		$group_label                  = sprintf(
@@ -767,7 +763,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $exporters An array of personal data exporters.
 	 *
-	 * @return array $exporters An array of personal data exporters.
+	 * @return array An array of personal data exporters.
 	 */
 	public function filter_register_custom_personal_data_exporter( $exporters ) {
 		$exporters[ self::$exporter_key ] = array(
@@ -785,7 +781,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @param string $email_address The requester's email address.
 	 * @param int    $page          Page number.
 	 *
-	 * @return array $response Export data response.
+	 * @return array Export data response.
 	 */
 	public function callback_custom_personal_data_exporter( $email_address, $page = 1 ) {
 		$data_to_export = array();

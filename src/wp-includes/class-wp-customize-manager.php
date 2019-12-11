@@ -317,7 +317,6 @@ final class WP_Customize_Manager {
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-name-control.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-locations-control.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-auto-add-control.php' );
-		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-control.php' ); // @todo Remove in a future release. See #42364.
 
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menus-panel.php' );
 
@@ -325,7 +324,6 @@ final class WP_Customize_Manager {
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-themes-section.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-sidebar-section.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-section.php' );
-		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-section.php' ); // @todo Remove in a future release. See #42364.
 
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-custom-css-setting.php' );
 		require_once( ABSPATH . WPINC . '/customize/class-wp-customize-filter-setting.php' );
@@ -438,8 +436,8 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param mixed $ajax_message Ajax return
-	 * @param mixed $message UI message
+	 * @param string|WP_Error $ajax_message Ajax return.
+	 * @param string          $message      Optional. UI message.
 	 */
 	protected function wp_die( $ajax_message, $message = null ) {
 		if ( $this->doing_ajax() ) {
@@ -1116,8 +1114,9 @@ final class WP_Customize_Manager {
 			return new WP_Error( 'wrong_post_type' );
 		}
 		$changeset_data = json_decode( $changeset_post->post_content, true );
-		if ( function_exists( 'json_last_error' ) && json_last_error() ) {
-			return new WP_Error( 'json_parse_error', '', json_last_error() );
+		$last_error     = json_last_error();
+		if ( $last_error ) {
+			return new WP_Error( 'json_parse_error', '', $last_error );
 		}
 		if ( ! is_array( $changeset_data ) ) {
 			return new WP_Error( 'expected_array' );
@@ -1229,7 +1228,7 @@ final class WP_Customize_Manager {
 					$widget_numbers = array_keys( $settings );
 					if ( count( $widget_numbers ) > 0 ) {
 						$widget_numbers[]               = 1;
-						$max_widget_numbers[ $id_base ] = call_user_func_array( 'max', $widget_numbers );
+						$max_widget_numbers[ $id_base ] = max( ...$widget_numbers );
 					} else {
 						$max_widget_numbers[ $id_base ] = 1;
 					}
@@ -1375,13 +1374,6 @@ final class WP_Customize_Manager {
 						)
 					);
 
-					// In PHP < 5.6 filesize() returns 0 for the temp files unless we clear the file status cache.
-					// Technically, PHP < 5.6.0 || < 5.5.13 || < 5.4.29 but no need to be so targeted.
-					// See https://bugs.php.net/bug.php?id=65701
-					if ( version_compare( PHP_VERSION, '5.6', '<' ) ) {
-						clearstatcache();
-					}
-
 					$attachment_id = media_handle_sideload( $file_array, 0, null, $attachment_post_data );
 					if ( is_wp_error( $attachment_id ) ) {
 						continue;
@@ -1523,7 +1515,27 @@ final class WP_Customize_Manager {
 
 		// Options.
 		foreach ( $options as $name => $value ) {
-			if ( preg_match( '/^{{(?P<symbol>.+)}}$/', $value, $matches ) ) {
+
+			// Serialize the value to check for post symbols.
+			$value = maybe_serialize( $value );
+
+			if ( is_serialized( $value ) ) {
+				if ( preg_match( '/s:\d+:"{{(?P<symbol>.+)}}"/', $value, $matches ) ) {
+					if ( isset( $posts[ $matches['symbol'] ] ) ) {
+						$symbol_match = $posts[ $matches['symbol'] ]['ID'];
+					} elseif ( isset( $attachment_ids[ $matches['symbol'] ] ) ) {
+						$symbol_match = $attachment_ids[ $matches['symbol'] ];
+					}
+
+					// If we have any symbol matches, update the values.
+					if ( isset( $symbol_match ) ) {
+						// Replace found string matches with post IDs.
+						$value = str_replace( $matches[0], "i:{$symbol_match}", $value );
+					} else {
+						continue;
+					}
+				}
+			} elseif ( preg_match( '/^{{(?P<symbol>.+)}}$/', $value, $matches ) ) {
 				if ( isset( $posts[ $matches['symbol'] ] ) ) {
 					$value = $posts[ $matches['symbol'] ]['ID'];
 				} elseif ( isset( $attachment_ids[ $matches['symbol'] ] ) ) {
@@ -1532,6 +1544,9 @@ final class WP_Customize_Manager {
 					continue;
 				}
 			}
+
+			// Unserialize values after checking for post symbols, so they can be properly referenced.
+			$value = maybe_unserialize( $value );
 
 			if ( empty( $changeset_data[ $name ] ) || ! empty( $changeset_data[ $name ]['starter_content'] ) ) {
 				$this->set_post_value( $name, $value );
@@ -1541,7 +1556,28 @@ final class WP_Customize_Manager {
 
 		// Theme mods.
 		foreach ( $theme_mods as $name => $value ) {
-			if ( preg_match( '/^{{(?P<symbol>.+)}}$/', $value, $matches ) ) {
+
+			// Serialize the value to check for post symbols.
+			$value = maybe_serialize( $value );
+
+			// Check if value was serialized.
+			if ( is_serialized( $value ) ) {
+				if ( preg_match( '/s:\d+:"{{(?P<symbol>.+)}}"/', $value, $matches ) ) {
+					if ( isset( $posts[ $matches['symbol'] ] ) ) {
+						$symbol_match = $posts[ $matches['symbol'] ]['ID'];
+					} elseif ( isset( $attachment_ids[ $matches['symbol'] ] ) ) {
+						$symbol_match = $attachment_ids[ $matches['symbol'] ];
+					}
+
+					// If we have any symbol matches, update the values.
+					if ( isset( $symbol_match ) ) {
+						// Replace found string matches with post IDs.
+						$value = str_replace( $matches[0], "i:{$symbol_match}", $value );
+					} else {
+						continue;
+					}
+				}
+			} elseif ( preg_match( '/^{{(?P<symbol>.+)}}$/', $value, $matches ) ) {
 				if ( isset( $posts[ $matches['symbol'] ] ) ) {
 					$value = $posts[ $matches['symbol'] ]['ID'];
 				} elseif ( isset( $attachment_ids[ $matches['symbol'] ] ) ) {
@@ -1550,6 +1586,9 @@ final class WP_Customize_Manager {
 					continue;
 				}
 			}
+
+			// Unserialize values after checking for post symbols, so they can be properly referenced.
+			$value = maybe_unserialize( $value );
 
 			// Handle header image as special case since setting has a legacy format.
 			if ( 'header_image' === $name ) {
@@ -2729,7 +2768,7 @@ final class WP_Customize_Manager {
 		if ( $update_transactionally && $invalid_setting_count > 0 ) {
 			$response = array(
 				'setting_validities' => $setting_validities,
-				/* translators: %s: number of invalid settings */
+				/* translators: %s: Number of invalid settings. */
 				'message'            => sprintf( _n( 'Unable to save due to %s invalid setting.', 'Unable to save due to %s invalid settings.', $invalid_setting_count ), number_format_i18n( $invalid_setting_count ) ),
 			);
 			return new WP_Error( 'transaction_fail', '', $response );
@@ -2843,13 +2882,9 @@ final class WP_Customize_Manager {
 		}
 
 		// Gather the data for wp_insert_post()/wp_update_post().
-		$json_options = 0;
-		if ( defined( 'JSON_UNESCAPED_SLASHES' ) ) {
-			$json_options |= JSON_UNESCAPED_SLASHES; // Introduced in PHP 5.4. This is only to improve readability as slashes needn't be escaped in storage.
-		}
-		$json_options |= JSON_PRETTY_PRINT; // Also introduced in PHP 5.4, but WP defines constant for back compat. See WP Trac #30139.
-		$post_array    = array(
-			'post_content' => wp_json_encode( $data, $json_options ),
+		$post_array = array(
+			// JSON_UNESCAPED_SLASHES is only to improve readability as slashes needn't be escaped in storage.
+			'post_content' => wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ),
 		);
 		if ( $args['title'] ) {
 			$post_array['post_title'] = $args['title'];
@@ -3341,7 +3376,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 * @see _wp_customize_publish_changeset()
-	 * @global wpdb $wpdb
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int $changeset_post_id ID for customize_changeset post. Defaults to the changeset for the current manager instance.
 	 * @return true|WP_Error True or error info.
@@ -3639,6 +3674,8 @@ final class WP_Customize_Manager {
 	 * @since 3.4.0
 	 * @since 4.5.0 Return added WP_Customize_Setting instance.
 	 *
+	 * @link https://developer.wordpress.org/themes/customize-api
+	 *
 	 * @param WP_Customize_Setting|string $id   Customize Setting object, or ID.
 	 * @param array                       $args {
 	 *  Optional. Array of properties for the new WP_Customize_Setting. Default empty array.
@@ -3650,8 +3687,7 @@ final class WP_Customize_Manager {
 	 *  @type string       $transport             Options for rendering the live preview of changes in Customizer.
 	 *                                            Using 'refresh' makes the change visible by reloading the whole preview.
 	 *                                            Using 'postMessage' allows a custom JavaScript to handle live changes.
-	 * @link https://developer.wordpress.org/themes/customize-api
-	 *                                            Default is 'refresh'
+	 *                                            Default is 'refresh'.
 	 *  @type callable     $validate_callback     Server-side validation callback for the setting's value.
 	 *  @type callable     $sanitize_callback     Callback to filter a Customize setting value in un-slashed form.
 	 *  @type callable     $sanitize_js_callback  Callback to convert a Customize PHP setting value to a value that is
@@ -3820,8 +3856,8 @@ final class WP_Customize_Manager {
 	public function remove_panel( $id ) {
 		// Removing core components this way is _doing_it_wrong().
 		if ( in_array( $id, $this->components, true ) ) {
-			/* translators: 1: panel id, 2: link to 'customize_loaded_components' filter reference */
 			$message = sprintf(
+				/* translators: 1: Panel ID, 2: Link to 'customize_loaded_components' filter reference. */
 				__( 'Removing %1$s manually will cause PHP warnings. Use the %2$s filter instead.' ),
 				$id,
 				'<a href="' . esc_url( 'https://developer.wordpress.org/reference/hooks/customize_loaded_components/' ) . '"><code>customize_loaded_components</code></a>'
@@ -4467,10 +4503,10 @@ final class WP_Customize_Manager {
 	 */
 	public function get_document_title_template() {
 		if ( $this->is_theme_active() ) {
-			/* translators: %s: document title from the preview */
+			/* translators: %s: Document title from the preview. */
 			$document_title_tmpl = __( 'Customize: %s' );
 		} else {
-			/* translators: %s: document title from the preview */
+			/* translators: %s: Document title from the preview. */
 			$document_title_tmpl = __( 'Live Preview: %s' );
 		}
 		$document_title_tmpl = html_entity_decode( $document_title_tmpl, ENT_QUOTES, 'UTF-8' ); // Because exported to JS and assigned to document.title.
@@ -4533,7 +4569,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @returns array Allowed URLs.
+	 * @return array Allowed URLs.
 	 */
 	public function get_allowed_urls() {
 		$allowed_urls = array( home_url( '/' ) );
@@ -4586,9 +4622,13 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.4.0
 	 *
+	 * @global array $_registered_pages
+	 *
 	 * @return string URL for link to close Customizer.
 	 */
 	public function get_return_url() {
+		global $_registered_pages;
+
 		$referer                    = wp_get_referer();
 		$excluded_referer_basenames = array( 'customize.php', 'wp-login.php' );
 
@@ -4601,6 +4641,22 @@ final class WP_Customize_Manager {
 		} else {
 			$return_url = home_url( '/' );
 		}
+
+		$return_url_basename = wp_basename( parse_url( $this->return_url, PHP_URL_PATH ) );
+		$return_url_query    = parse_url( $this->return_url, PHP_URL_QUERY );
+
+		if ( 'themes.php' === $return_url_basename && $return_url_query ) {
+			parse_str( $return_url_query, $query_vars );
+
+			/*
+			 * If the return URL is a page added by a theme to the Appearance menu via add_submenu_page(),
+			 * verify that belongs to the active theme, otherwise fall back to the Themes screen.
+			 */
+			if ( isset( $query_vars['page'] ) && ! isset( $_registered_pages[ "appearance_page_{$query_vars['page']}" ] ) ) {
+				$return_url = admin_url( 'themes.php' );
+			}
+		}
+
 		return $return_url;
 	}
 
@@ -4809,11 +4865,11 @@ final class WP_Customize_Manager {
 			'previewableDevices'     => $this->get_previewable_devices(),
 			'l10n'                   => array(
 				'confirmDeleteTheme'   => __( 'Are you sure you want to delete this theme?' ),
-				/* translators: %d: number of theme search results, which cannot currently consider singular vs. plural forms */
+				/* translators: %d: Number of theme search results, which cannot currently consider singular vs. plural forms. */
 				'themeSearchResults'   => __( '%d themes found' ),
-				/* translators: %d: number of themes being displayed, which cannot currently consider singular vs. plural forms */
+				/* translators: %d: Number of themes being displayed, which cannot currently consider singular vs. plural forms. */
 				'announceThemeCount'   => __( 'Displaying %d themes' ),
-				/* translators: %s: theme name */
+				/* translators: %s: Theme name. */
 				'announceThemeDetails' => __( 'Showing details for theme: %s' ),
 			),
 		);
@@ -5069,7 +5125,7 @@ final class WP_Customize_Manager {
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
 						'<p>' . __( 'Site Icons are what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. Upload one here!' ) . '</p>' .
-						/* translators: %s: site icon size in pixels */
+						/* translators: %s: Site icon size in pixels. */
 						'<p>' . __( 'Site Icons should be square and at least %s pixels.' ) . '</p>',
 						'<strong>512 &times; 512</strong>'
 					),
@@ -5098,10 +5154,10 @@ final class WP_Customize_Manager {
 					'label'         => __( 'Logo' ),
 					'section'       => 'title_tagline',
 					'priority'      => 8,
-					'height'        => $custom_logo_args[0]['height'],
-					'width'         => $custom_logo_args[0]['width'],
-					'flex_height'   => $custom_logo_args[0]['flex-height'],
-					'flex_width'    => $custom_logo_args[0]['flex-width'],
+					'height'        => isset( $custom_logo_args[0]['height'] ) ? $custom_logo_args[0]['height'] : null,
+					'width'         => isset( $custom_logo_args[0]['width'] ) ? $custom_logo_args[0]['width'] : null,
+					'flex_height'   => isset( $custom_logo_args[0]['flex-height'] ) ? $custom_logo_args[0]['flex-height'] : null,
+					'flex_width'    => isset( $custom_logo_args[0]['flex-width'] ) ? $custom_logo_args[0]['flex-width'] : null,
 					'button_labels' => array(
 						'select'       => __( 'Select logo' ),
 						'change'       => __( 'Change logo' ),
@@ -5204,21 +5260,21 @@ final class WP_Customize_Manager {
 			$height = absint( get_theme_support( 'custom-header', 'height' ) );
 			if ( $width && $height ) {
 				$control_description = sprintf(
-					/* translators: 1: .mp4, 2: header size in pixels */
+					/* translators: 1: .mp4, 2: Header size in pixels. */
 					__( 'Upload your video in %1$s format and minimize its file size for best results. Your theme recommends dimensions of %2$s pixels.' ),
 					'<code>.mp4</code>',
 					sprintf( '<strong>%s &times; %s</strong>', $width, $height )
 				);
 			} elseif ( $width ) {
 				$control_description = sprintf(
-					/* translators: 1: .mp4, 2: header width in pixels */
+					/* translators: 1: .mp4, 2: Header width in pixels. */
 					__( 'Upload your video in %1$s format and minimize its file size for best results. Your theme recommends a width of %2$s pixels.' ),
 					'<code>.mp4</code>',
 					sprintf( '<strong>%s</strong>', $width )
 				);
 			} else {
 				$control_description = sprintf(
-					/* translators: 1: .mp4, 2: header height in pixels */
+					/* translators: 1: .mp4, 2: Header height in pixels. */
 					__( 'Upload your video in %1$s format and minimize its file size for best results. Your theme recommends a height of %2$s pixels.' ),
 					'<code>.mp4</code>',
 					sprintf( '<strong>%s</strong>', $height )
@@ -5568,7 +5624,7 @@ final class WP_Customize_Manager {
 			' <a href="%1$s" class="external-link" target="_blank">%2$s<span class="screen-reader-text"> %3$s</span></a>',
 			esc_url( __( 'https://codex.wordpress.org/CSS' ) ),
 			__( 'Learn more about CSS' ),
-			/* translators: accessibility text */
+			/* translators: Accessibility text. */
 			__( '(opens in a new tab)' )
 		);
 		$section_description .= '</p>';
@@ -5583,13 +5639,13 @@ final class WP_Customize_Manager {
 		if ( 'false' !== wp_get_current_user()->syntax_highlighting ) {
 			$section_description .= '<p>';
 			$section_description .= sprintf(
-				/* translators: 1: link to user profile, 2: additional link attributes, 3: accessibility text */
+				/* translators: 1: Link to user profile, 2: Additional link attributes, 3: Accessibility text. */
 				__( 'The edit field automatically highlights code syntax. You can disable this in your <a href="%1$s" %2$s>user profile%3$s</a> to work in plain text mode.' ),
 				esc_url( get_edit_profile_url() ),
 				'class="external-link" target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: accessibility text */
+					/* translators: Accessibility text. */
 					__( '(opens in a new tab)' )
 				)
 			);
@@ -5644,7 +5700,7 @@ final class WP_Customize_Manager {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @returns bool Whether there are published (or to be published) pages.
+	 * @return bool Whether there are published (or to be published) pages.
 	 */
 	public function has_published_pages() {
 
@@ -5936,7 +5992,7 @@ final class WP_Customize_Manager {
 		$video = get_attached_file( absint( $value ) );
 		if ( $video ) {
 			$size = filesize( $video );
-			if ( 8 < $size / pow( 1024, 2 ) ) { // Check whether the size is larger than 8MB.
+			if ( $size > 8 * MB_IN_BYTES ) {
 				$validity->add(
 					'size_too_large',
 					__( 'This video file is too large to use as a header video. Try a shorter video or optimize the compression settings and re-upload a file that is less than 8MB. Or, upload your video to YouTube and link it with the option below.' )

@@ -381,7 +381,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 	 * @since 4.3.0
 	 *
 	 * @param array $nav_menu_options Nav menu options including auto_add.
-	 * @return array (Kaybe) modified nav menu options.
+	 * @return array (Maybe) modified nav menu options.
 	 */
 	public function filter_nav_menu_options( $nav_menu_options ) {
 		if ( $this->_previewed_blog_id !== get_current_blog_id() ) {
@@ -517,7 +517,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 			$name_conflict_suffix = 1;
 			while ( is_wp_error( $r ) && 'menu_exists' === $r->get_error_code() ) {
 				$name_conflict_suffix += 1;
-				/* translators: 1: original menu name, 2: duplicate count */
+				/* translators: 1: Original menu name, 2: Duplicate count. */
 				$menu_data['menu-name'] = sprintf( __( '%1$s (%2$d)' ), $original_name, $name_conflict_suffix );
 				$r                      = wp_update_nav_menu_object( $menu_id, wp_slash( $menu_data ) );
 			}

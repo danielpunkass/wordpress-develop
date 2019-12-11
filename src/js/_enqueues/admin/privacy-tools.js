@@ -71,7 +71,13 @@ jQuery( document ).ready( function( $ ) {
 		clearResultsAfterRow( $requestRow );
 
 		function onExportDoneSuccess( zipUrl ) {
+			var summaryMessage = strings.emailSent;
+
 			setActionState( $action, 'export-personal-data-success' );
+
+			appendResultsAfterRow( $requestRow, 'notice-success', summaryMessage, [] );
+			$this.hide();
+			
 			if ( 'undefined' !== typeof zipUrl ) {
 				window.location = zipUrl;
 			} else if ( ! sendAsEmail ) {
@@ -151,7 +157,7 @@ jQuery( document ).ready( function( $ ) {
 			var summaryMessage = strings.noDataFound;
 			var classes = 'notice-success';
 
-			setActionState( $action, 'remove-personal-data-idle' );
+			setActionState( $action, 'remove-personal-data-success' );
 
 			if ( false === hasRemoved ) {
 				if ( false === hasRetained ) {
@@ -168,7 +174,8 @@ jQuery( document ).ready( function( $ ) {
 					classes = 'notice-warning';
 				}
 			}
-			appendResultsAfterRow( $requestRow, 'notice-success', summaryMessage, messages );
+			appendResultsAfterRow( $requestRow, classes, summaryMessage, messages );
+			$this.hide();
 		}
 
 		function onErasureFailure() {

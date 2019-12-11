@@ -274,9 +274,9 @@ function wpmu_admin_do_redirect( $url = '' ) {
 	if ( isset( $_GET['ref'] ) && isset( $_POST['ref'] ) && $_GET['ref'] !== $_POST['ref'] ) {
 		wp_die( __( 'A variable mismatch has been detected.' ), __( 'Sorry, you are not allowed to view this item.' ), 400 );
 	} elseif ( isset( $_POST['ref'] ) ) {
-		$ref = $_POST[ 'ref' ];
+		$ref = $_POST['ref'];
 	} elseif ( isset( $_GET['ref'] ) ) {
-		$ref = $_GET[ 'ref' ];
+		$ref = $_GET['ref'];
 	}
 
 	if ( $ref ) {
@@ -472,10 +472,8 @@ function get_admin_users_for_domain( $domain = '', $path = '' ) {
  *     @type int       $limit      Number of sites to limit the query to. Default 100.
  *     @type int       $offset     Exclude the first x sites. Used in combination with the $limit parameter. Default 0.
  * }
- * @return array An empty array if the installation is considered "large" via wp_is_large_network(). Otherwise,
- *               an associative array of site data arrays, each containing the site (network) ID, blog ID,
- *               site domain and path, dates registered and modified, and the language ID. Also, boolean
- *               values for whether the site is public, archived, mature, spam, and/or deleted.
+ * @return array[] An empty array if the installation is considered "large" via wp_is_large_network(). Otherwise,
+ *                 an associative array of WP_Site data as arrays.
  */
 function wp_get_sites( $args = array() ) {
 	_deprecated_function( __FUNCTION__, '4.6.0', 'get_sites()' );
@@ -596,8 +594,8 @@ function insert_blog($domain, $path, $site_id) {
  * @since MU (3.0.0)
  * @deprecated 5.1.0
  *
- * @global wpdb     $wpdb
- * @global WP_Roles $wp_roles
+ * @global wpdb     $wpdb     WordPress database abstraction object.
+ * @global WP_Roles $wp_roles WordPress role management object.
  *
  * @param int    $blog_id    The value returned by wp_insert_site().
  * @param string $blog_title The title of the new site.
@@ -684,4 +682,49 @@ function install_blog_defaults( $blog_id, $user_id ) {
 	wp_install_defaults( $user_id );
 
 	$wpdb->suppress_errors( $suppress );
+}
+
+/**
+ * Update the status of a user in the database.
+ *
+ * Previously used in core to mark a user as spam or "ham" (not spam) in Multisite.
+ *
+ * @since 3.0.0
+ * @deprecated 5.3.0 Use wp_update_user()
+ * @see wp_update_user()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int    $id         The user ID.
+ * @param string $pref       The column in the wp_users table to update the user's status
+ *                           in (presumably user_status, spam, or deleted).
+ * @param int    $value      The new status for the user.
+ * @param null   $deprecated Deprecated as of 3.0.2 and should not be used.
+ * @return int   The initially passed $value.
+ */
+function update_user_status( $id, $pref, $value, $deprecated = null ) {
+	global $wpdb;
+
+	_deprecated_function( __FUNCTION__, '5.3.0', 'wp_update_user()' );
+
+	if ( null !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '3.0.2' );
+	}
+
+	$wpdb->update( $wpdb->users, array( sanitize_key( $pref ) => $value ), array( 'ID' => $id ) );
+
+	$user = new WP_User( $id );
+	clean_user_cache( $user );
+
+	if ( $pref == 'spam' ) {
+		if ( $value == 1 ) {
+			/** This filter is documented in wp-includes/user.php */
+			do_action( 'make_spam_user', $id );
+		} else {
+			/** This filter is documented in wp-includes/user.php */
+			do_action( 'make_ham_user', $id );
+		}
+	}
+
+	return $value;
 }

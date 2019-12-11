@@ -10,8 +10,8 @@
  * This functionality was found in a plugin before the WordPress 2.2 release, which
  * included it in the core from that point on.
  *
- * @link https://codex.wordpress.org/Plugins/WordPress_Widgets WordPress Widgets
- * @link https://codex.wordpress.org/Plugins/WordPress_Widgets_Api Widgets API
+ * @link https://wordpress.org/support/article/wordpress-widgets/
+ * @link https://developer.wordpress.org/themes/functionality/widgets/
  *
  * @package WordPress
  * @subpackage Widgets
@@ -175,7 +175,12 @@ function register_sidebars( $number = 1, $args = array() ) {
 		$_args = $args;
 
 		if ( $number > 1 ) {
-			$_args['name'] = isset( $args['name'] ) ? sprintf( $args['name'], $i ) : sprintf( __( 'Sidebar %d' ), $i );
+			if ( isset( $args['name'] ) ) {
+				$_args['name'] = sprintf( $args['name'], $i );
+			} else {
+				/* translators: %d: Sidebar number. */
+				$_args['name'] = sprintf( __( 'Sidebar %d' ), $i );
+			}
 		} else {
 			$_args['name'] = isset( $args['name'] ) ? $args['name'] : __( 'Sidebar' );
 		}
@@ -247,6 +252,7 @@ function register_sidebar( $args = array() ) {
 	$id_is_empty = empty( $args['id'] );
 
 	$defaults = array(
+		/* translators: %d: Sidebar number. */
 		'name'          => sprintf( __( 'Sidebar %d' ), $i ),
 		'id'            => "sidebar-$i",
 		'description'   => '',
@@ -257,11 +263,29 @@ function register_sidebar( $args = array() ) {
 		'after_title'   => "</h2>\n",
 	);
 
-	$sidebar = wp_parse_args( $args, $defaults );
+	/**
+	 * Filters the sidebar default arguments.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @see register_sidebar()
+	 *
+	 * @param array $defaults The default sidebar arguments.
+	 */
+	$sidebar = wp_parse_args( $args, apply_filters( 'register_sidebar_defaults', $defaults ) );
 
 	if ( $id_is_empty ) {
-		/* translators: 1: the id argument, 2: sidebar name, 3: recommended id value */
-		_doing_it_wrong( __FUNCTION__, sprintf( __( 'No %1$s was set in the arguments array for the "%2$s" sidebar. Defaulting to "%3$s". Manually set the %1$s to "%3$s" to silence this notice and keep existing sidebar content.' ), '<code>id</code>', $sidebar['name'], $sidebar['id'] ), '4.2.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: The 'id' argument, 2: Sidebar name, 3: Recommended 'id' value. */
+				__( 'No %1$s was set in the arguments array for the "%2$s" sidebar. Defaulting to "%3$s". Manually set the %1$s to "%3$s" to silence this notice and keep existing sidebar content.' ),
+				'<code>id</code>',
+				$sidebar['name'],
+				$sidebar['id']
+			),
+			'4.2.0'
+		);
 	}
 
 	$wp_registered_sidebars[ $sidebar['id'] ] = $sidebar;
@@ -320,6 +344,8 @@ function is_registered_sidebar( $sidebar_id ) {
  * parameter is an empty string.
  *
  * @since 2.2.0
+ * @since 5.3.0 Formalized the existing and already documented `...$params` parameter
+ *              by adding it to the function signature.
  *
  * @global array $wp_registered_widgets            Uses stored registered widgets.
  * @global array $wp_registered_widget_controls    Stores the registered widget controls (options).
@@ -339,7 +365,7 @@ function is_registered_sidebar( $sidebar_id ) {
  * }
  * @param mixed      ...$params       Optional additional parameters to pass to the callback function when it's called.
  */
-function wp_register_sidebar_widget( $id, $name, $output_callback, $options = array() ) {
+function wp_register_sidebar_widget( $id, $name, $output_callback, $options = array(), ...$params ) {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates, $_wp_deprecated_widgets_callbacks;
 
 	$id = strtolower( $id );
@@ -362,7 +388,7 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
 		'name'     => $name,
 		'id'       => $id,
 		'callback' => $output_callback,
-		'params'   => array_slice( func_get_args(), 4 ),
+		'params'   => $params,
 	);
 	$widget   = array_merge( $widget, $options );
 
@@ -457,8 +483,8 @@ function wp_unregister_sidebar_widget( $id ) {
  * Registers widget control callback for customizing options.
  *
  * @since 2.2.0
- *
- * @todo `$params` parameter?
+ * @since 5.3.0 Formalized the existing and already documented `...$params` parameter
+ *              by adding it to the function signature.
  *
  * @global array $wp_registered_widget_controls
  * @global array $wp_registered_widget_updates
@@ -479,7 +505,7 @@ function wp_unregister_sidebar_widget( $id ) {
  * }
  * @param mixed      ...$params        Optional additional parameters to pass to the callback function when it's called.
  */
-function wp_register_widget_control( $id, $name, $control_callback, $options = array() ) {
+function wp_register_widget_control( $id, $name, $control_callback, $options = array(), ...$params ) {
 	global $wp_registered_widget_controls, $wp_registered_widget_updates, $wp_registered_widgets, $_wp_deprecated_widgets_callbacks;
 
 	$id      = strtolower( $id );
@@ -512,7 +538,7 @@ function wp_register_widget_control( $id, $name, $control_callback, $options = a
 		'name'     => $name,
 		'id'       => $id,
 		'callback' => $control_callback,
-		'params'   => array_slice( func_get_args(), 4 ),
+		'params'   => $params,
 	);
 	$widget = array_merge( $widget, $options );
 
@@ -534,6 +560,8 @@ function wp_register_widget_control( $id, $name, $control_callback, $options = a
  * Registers the update callback for a widget.
  *
  * @since 2.8.0
+ * @since 5.3.0 Formalized the existing and already documented `...$params` parameter
+ *              by adding it to the function signature.
  *
  * @global array $wp_registered_widget_updates
  *
@@ -543,7 +571,7 @@ function wp_register_widget_control( $id, $name, $control_callback, $options = a
  *                                  Default empty array.
  * @param mixed    ...$params       Optional additional parameters to pass to the callback function when it's called.
  */
-function _register_widget_update_callback( $id_base, $update_callback, $options = array() ) {
+function _register_widget_update_callback( $id_base, $update_callback, $options = array(), ...$params ) {
 	global $wp_registered_widget_updates;
 
 	if ( isset( $wp_registered_widget_updates[ $id_base ] ) ) {
@@ -555,7 +583,7 @@ function _register_widget_update_callback( $id_base, $update_callback, $options 
 
 	$widget = array(
 		'callback' => $update_callback,
-		'params'   => array_slice( func_get_args(), 3 ),
+		'params'   => $params,
 	);
 
 	$widget                                   = array_merge( $widget, $options );
@@ -566,6 +594,8 @@ function _register_widget_update_callback( $id_base, $update_callback, $options 
  * Registers the form callback for a widget.
  *
  * @since 2.8.0
+ * @since 5.3.0 Formalized the existing and already documented `...$params` parameter
+ *              by adding it to the function signature.
  *
  * @global array $wp_registered_widget_controls
  *
@@ -577,7 +607,7 @@ function _register_widget_update_callback( $id_base, $update_callback, $options 
  * @param mixed      ...$params     Optional additional parameters to pass to the callback function when it's called.
  */
 
-function _register_widget_form_callback( $id, $name, $form_callback, $options = array() ) {
+function _register_widget_form_callback( $id, $name, $form_callback, $options = array(), ...$params ) {
 	global $wp_registered_widget_controls;
 
 	$id = strtolower( $id );
@@ -603,7 +633,7 @@ function _register_widget_form_callback( $id, $name, $form_callback, $options = 
 		'name'     => $name,
 		'id'       => $id,
 		'callback' => $form_callback,
-		'params'   => array_slice( func_get_args(), 4 ),
+		'params'   => $params,
 	);
 	$widget = array_merge( $widget, $options );
 
@@ -1026,7 +1056,8 @@ function wp_get_widget_defaults() {
  */
 function wp_convert_widget_settings( $base_name, $option_name, $settings ) {
 	// This test may need expanding.
-	$single = $changed = false;
+	$single  = false;
+	$changed = false;
 	if ( empty( $settings ) ) {
 		$single = true;
 	} else {
@@ -1105,8 +1136,15 @@ function the_widget( $widget, $instance = array(), $args = array() ) {
 	global $wp_widget_factory;
 
 	if ( ! isset( $wp_widget_factory->widgets[ $widget ] ) ) {
-		/* translators: %s: register_widget() */
-		_doing_it_wrong( __FUNCTION__, sprintf( __( 'Widgets need to be registered using %s, before they can be displayed.' ), '<code>register_widget()</code>' ), '4.9.0' );
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: register_widget() */
+				__( 'Widgets need to be registered using %s, before they can be displayed.' ),
+				'<code>register_widget()</code>'
+			),
+			'4.9.0'
+		);
 		return;
 	}
 
@@ -1125,6 +1163,13 @@ function the_widget( $widget, $instance = array(), $args = array() ) {
 	$args['before_widget'] = sprintf( $args['before_widget'], $widget_obj->widget_options['classname'] );
 
 	$instance = wp_parse_args( $instance );
+
+	/** This filter is documented in wp-includes/class-wp-widget.php */
+	$instance = apply_filters( 'widget_display_callback', $instance, $widget_obj, $args );
+
+	if ( false === $instance ) {
+		return;
+	}
 
 	/**
 	 * Fires before rendering the requested widget.
@@ -1492,7 +1537,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$title = __( 'Untitled' );
 		}
 
-		$desc = @html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
+		$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
 		$desc = esc_attr( wp_trim_words( $desc, 55, ' [&hellip;]' ) );
 
 		$summary = '';

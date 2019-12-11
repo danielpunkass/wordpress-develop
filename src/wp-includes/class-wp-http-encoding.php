@@ -52,15 +52,18 @@ class WP_Http_Encoding {
 			return $compressed;
 		}
 
-		if ( false !== ( $decompressed = @gzinflate( $compressed ) ) ) {
+		$decompressed = @gzinflate( $compressed );
+		if ( false !== $decompressed ) {
 			return $decompressed;
 		}
 
-		if ( false !== ( $decompressed = self::compatible_gzinflate( $compressed ) ) ) {
+		$decompressed = self::compatible_gzinflate( $compressed );
+		if ( false !== $decompressed ) {
 			return $decompressed;
 		}
 
-		if ( false !== ( $decompressed = @gzuncompress( $compressed ) ) ) {
+		$decompressed = @gzuncompress( $compressed );
+		if ( false !== $decompressed ) {
 			return $decompressed;
 		}
 
@@ -171,10 +174,9 @@ class WP_Http_Encoding {
 		 *
 		 * @since 3.6.0
 		 *
-		 * @param array  $type Encoding types allowed. Accepts 'gzinflate',
-		 *                     'gzuncompress', 'gzdecode'.
-		 * @param string $url  URL of the HTTP request.
-		 * @param array  $args HTTP request arguments.
+		 * @param string[] $type Array of what encoding types to accept and their priority values.
+		 * @param string   $url  URL of the HTTP request.
+		 * @param array    $args HTTP request arguments.
 		 */
 		$type = apply_filters( 'wp_http_accept_encoding', $type, $url, $args );
 

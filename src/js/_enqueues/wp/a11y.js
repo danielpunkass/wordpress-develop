@@ -21,14 +21,14 @@ window.wp = window.wp || {};
 	 * @param {String} message    The message to be announced by Assistive Technologies.
 	 * @param {String} [ariaLive] The politeness level for aria-live. Possible values:
 	 *                            polite or assertive. Default polite.
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function speak( message, ariaLive ) {
 		// Clear previous messages to allow repeated strings being read out.
 		clear();
 
-		// Ensure only text is sent to screen readers.
-		message = $( '<p>' ).html( message ).text();
+		// Remove HTML tags, ensuring only text is sent to screen readers.
+		message = wp.sanitize.stripTagsAndEncodeText( message );
 
 		/*
 		 * Safari 10+VoiceOver don't announce repeated, identical strings. We use

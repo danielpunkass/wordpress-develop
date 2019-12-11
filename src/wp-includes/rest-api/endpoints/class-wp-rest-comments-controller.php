@@ -118,7 +118,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, error object otherwise.
+	 * @return true|WP_Error True if the request has read access, error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -157,7 +157,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			if ( ! empty( $forbidden_params ) ) {
-				return new WP_Error( 'rest_forbidden_param', sprintf( __( 'Query parameter not permitted: %s' ), implode( ', ', $forbidden_params ) ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error(
+					'rest_forbidden_param',
+					/* translators: %s: List of forbidden parameters. */
+					sprintf( __( 'Query parameter not permitted: %s' ), implode( ', ', $forbidden_params ) ),
+					array( 'status' => rest_authorization_required_code() )
+				);
 			}
 		}
 
@@ -170,7 +175,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
 	public function get_items( $request ) {
 
@@ -344,7 +349,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$comment = $this->get_comment( $request['id'] );
@@ -375,7 +380,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
 	public function get_item( $request ) {
 		$comment = $this->get_comment( $request['id'] );
@@ -395,7 +400,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has access to create items, error object otherwise.
+	 * @return true|WP_Error True if the request has access to create items, error object otherwise.
 	 */
 	public function create_item_permissions_check( $request ) {
 		if ( ! is_user_logged_in() ) {
@@ -425,7 +430,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error(
 				'rest_comment_invalid_author',
-				/* translators: %s: request parameter */
+				/* translators: %s: Request parameter. */
 				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'author' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
@@ -435,7 +440,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if ( empty( $_SERVER['REMOTE_ADDR'] ) || $request['author_ip'] !== $_SERVER['REMOTE_ADDR'] ) {
 				return new WP_Error(
 					'rest_comment_invalid_author_ip',
-					/* translators: %s: request parameter */
+					/* translators: %s: Request parameter. */
 					sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'author_ip' ),
 					array( 'status' => rest_authorization_required_code() )
 				);
@@ -445,7 +450,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error(
 				'rest_comment_invalid_status',
-				/* translators: %s: request parameter */
+				/* translators: %s: Request parameter. */
 				sprintf( __( "Sorry, you are not allowed to edit '%s' for comments." ), 'status' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
@@ -485,7 +490,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -662,7 +667,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has access to update the item, error object otherwise.
+	 * @return true|WP_Error True if the request has access to update the item, error object otherwise.
 	 */
 	public function update_item_permissions_check( $request ) {
 		$comment = $this->get_comment( $request['id'] );
@@ -683,7 +688,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
 	public function update_item( $request ) {
 		$comment = $this->get_comment( $request['id'] );
@@ -782,7 +787,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has access to delete the item, error object otherwise.
+	 * @return true|WP_Error True if the request has access to delete the item, error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
 		$comment = $this->get_comment( $request['id'] );
@@ -802,7 +807,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
 	 */
 	public function delete_item( $request ) {
 		$comment = $this->get_comment( $request['id'] );
@@ -949,7 +954,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( in_array( 'author_avatar_urls', $fields, true ) ) {
-			$data['author_avatar_urls'] = rest_get_avatar_urls( $comment->comment_author_email );
+			$data['author_avatar_urls'] = rest_get_avatar_urls( $comment );
 		}
 
 		if ( in_array( 'meta', $fields, true ) ) {
@@ -1215,6 +1220,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'comment',
@@ -1345,7 +1354,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$avatar_sizes = rest_get_avatar_sizes();
 			foreach ( $avatar_sizes as $size ) {
 				$avatar_properties[ $size ] = array(
-					/* translators: %d: avatar image size in pixels */
+					/* translators: %d: Avatar image size in pixels. */
 					'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
 					'type'        => 'string',
 					'format'      => 'uri',
@@ -1364,7 +1373,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$schema['properties']['meta'] = $this->meta->get_field_schema();
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -1582,8 +1592,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool Whether post can be read.
 	 */
 	protected function check_read_post_permission( $post, $request ) {
-		$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
 		$post_type        = get_post_type_object( $post->post_type );
+		$posts_controller = $post_type->get_rest_controller();
+
+		// Ensure the posts controller is specifically a WP_REST_Posts_Controller instance
+		// before using methods specific to that controller.
+		if ( ! $posts_controller instanceof WP_REST_Posts_Controller ) {
+			$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
+		}
 
 		$has_password_filter = false;
 
@@ -1648,7 +1664,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param object $comment Comment object.
+	 * @param WP_Comment $comment Comment object.
 	 * @return bool Whether the comment can be edited or deleted.
 	 */
 	protected function check_edit_permission( $comment ) {
@@ -1656,8 +1672,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		if ( ! current_user_can( 'moderate_comments' ) ) {
-			return false;
+		if ( current_user_can( 'moderate_comments' ) ) {
+			return true;
 		}
 
 		return current_user_can( 'edit_comment', $comment->comment_ID );
@@ -1675,7 +1691,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param string          $value   Author email value submitted.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @param string          $param   The parameter name.
-	 * @return WP_Error|string The sanitized email address, if valid,
+	 * @return string|WP_Error The sanitized email address, if valid,
 	 *                         otherwise an error.
 	 */
 	public function check_comment_author_email( $value, $request, $param ) {

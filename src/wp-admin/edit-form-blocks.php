@@ -1,6 +1,6 @@
 <?php
 /**
- * The Block Editor page.
+ * The block editor page.
  *
  * @since 5.0.0
  *
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * @global string       $post_type
  * @global WP_Post_Type $post_type_object
- * @global WP_Post      $post
+ * @global WP_Post      $post             Global post object.
  * @global string       $title
  * @global array        $editor_styles
  * @global array        $wp_meta_boxes
@@ -49,6 +49,7 @@ $preload_paths = array(
 	sprintf( '/wp/v2/users/me?post_type=%s&context=edit', $post_type ),
 	array( '/wp/v2/media', 'OPTIONS' ),
 	array( '/wp/v2/blocks', 'OPTIONS' ),
+	sprintf( '/wp/v2/%s/%d/autosaves?context=edit', $rest_base, $post->ID ),
 );
 
 /**
@@ -58,8 +59,8 @@ $preload_paths = array(
  *
  * @since 5.0.0
  *
- * @param array  $preload_paths Array of paths to preload.
- * @param object $post          The post resource data.
+ * @param string[] $preload_paths Array of paths to preload.
+ * @param WP_Post  $post          Post being edited.
  */
 $preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $post );
 
@@ -143,7 +144,7 @@ $font_sizes    = current( (array) get_theme_support( 'editor-font-sizes' ) );
  *
  * @param bool|array $allowed_block_types Array of block type slugs, or
  *                                        boolean to enable/disable all.
- * @param object $post                    The post resource data.
+ * @param WP_Post    $post                The post resource data.
  */
 $allowed_block_types = apply_filters( 'allowed_block_types', true, $post );
 
@@ -175,7 +176,7 @@ $styles = array(
 	),
 );
 
-/* Translators: Use this to specify the CSS font family for the default font */
+/* translators: Use this to specify the CSS font family for the default font. */
 $locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
 $styles[]           = array(
 	'css' => "body { font-family: '$locale_font_family' }",
@@ -192,7 +193,7 @@ if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 			}
 		} else {
 			$file = get_theme_file_path( $style );
-			if ( file_exists( $file ) ) {
+			if ( is_file( $file ) ) {
 				$styles[] = array(
 					'css'     => file_get_contents( $file ),
 					'baseURL' => get_theme_file_uri( $style ),
@@ -415,9 +416,9 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 			<p>
 				<?php
 					$message = sprintf(
-						/* translators: %s: Classic Editor plugin URL */
+						/* translators: %s: A link to install the Classic Editor plugin. */
 						__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or try the <a href="%s">Classic Editor plugin</a>.' ),
-						__( 'https://wordpress.org/plugins/classic-editor/' )
+						esc_url( wp_nonce_url( self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ), 'save_wporg_username_' . get_current_user_id() ) )
 					);
 
 					/**
