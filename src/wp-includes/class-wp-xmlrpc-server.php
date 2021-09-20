@@ -1591,6 +1591,12 @@ class wp_xmlrpc_server extends IXR_Server {
 				$taxonomies = array_keys( $post_data['terms_names'] );
 
 				foreach ( $taxonomies as $taxonomy ) {
+					// In case an empty array was specified with terms_names, and no terms were specified by ID above,
+					// we need to ensure an empty array is set to start for this taxonomy, so that existing terms will be removed.
+					if ( ! array_key_exists( $taxonomy, $terms ) ) {
+						$terms[ $taxonomy ] = array();
+					}
+
 					if ( ! array_key_exists( $taxonomy, $post_type_taxonomies ) ) {
 						return new IXR_Error( 401, __( 'Sorry, one of the given taxonomies is not supported by the post type.' ) );
 					}
