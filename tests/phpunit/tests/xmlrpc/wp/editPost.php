@@ -528,4 +528,37 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$after = get_post( $post_id );
 		$this->assertSame( '0000-00-00 00:00:00', $after->post_date_gmt );
 	}
+
+	/**
+	 * @ticket 54147
+	 */
+	function test_tags_updated_with_empty_term_names() {
+		$editor_id = $this->make_user_by_role( 'editor' );
+
+		// Create a post with a tag
+		$post_content = array(
+			'post_title'   => 'Tags Removal Test',
+			'post_content' => 'Content',
+			'terms_names'      => array(
+				'post_tag' => array( "tag1" ),
+			),
+		);
+
+		$post_id = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post_content ) );
+		$this->assertNotIXRError( $post_id );
+
+		$before_tags = wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'ids' ) );
+		$this->assertNotEmpty( $before_tags );
+
+		// Updating with empty terms_names should remove any existing tags
+		$struct = array( 'terms_names' => array(
+				'post_tag'	=> array(),
+			),
+		);
+		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'editor', 'editor', $post_id, $struct ) );
+		$this->assertNotIXRError( $result );
+
+		$after_tags = wp_get_object_terms( $post_id, 'post_tag', array( 'fields' => 'ids' ) );
+		$this->assertEmpty( $after_tags );
+	}
 }
