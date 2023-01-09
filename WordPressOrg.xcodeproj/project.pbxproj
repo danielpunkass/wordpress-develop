@@ -1,0 +1,110 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 55;
+	objects = {
+
+/* Begin PBXFileReference section */
+		65A3ADA828201E1300662685 /* wp-load.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-load.php"; path = "src/wp-load.php"; sourceTree = "<group>"; };
+		65A3ADA928201E1300662685 /* wp-login.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-login.php"; path = "src/wp-login.php"; sourceTree = "<group>"; };
+		65A3ADAA28201E1300662685 /* wp-cron.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-cron.php"; path = "src/wp-cron.php"; sourceTree = "<group>"; };
+		65A3ADAB28201E1300662685 /* wp-includes */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "wp-includes"; path = "src/wp-includes"; sourceTree = "<group>"; };
+		65A3ADAC28201E1300662685 /* _index.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = _index.php; path = src/_index.php; sourceTree = "<group>"; };
+		65A3ADAD28201E1300662685 /* wp-admin */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "wp-admin"; path = "src/wp-admin"; sourceTree = "<group>"; };
+		65A3ADAE28201E1300662685 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; name = js; path = src/js; sourceTree = "<group>"; };
+		65A3ADAF28201E1300662685 /* wp-trackback.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-trackback.php"; path = "src/wp-trackback.php"; sourceTree = "<group>"; };
+		65A3ADB028201E1300662685 /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = license.txt; path = src/license.txt; sourceTree = "<group>"; };
+		65A3ADB128201E1300662685 /* wp-comments-post.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-comments-post.php"; path = "src/wp-comments-post.php"; sourceTree = "<group>"; };
+		65A3ADB228201E1400662685 /* xmlrpc.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = xmlrpc.php; path = src/xmlrpc.php; sourceTree = "<group>"; };
+		65A3ADB328201E1400662685 /* wp-mail.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-mail.php"; path = "src/wp-mail.php"; sourceTree = "<group>"; };
+		65A3ADB428201E1400662685 /* wp-blog-header.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-blog-header.php"; path = "src/wp-blog-header.php"; sourceTree = "<group>"; };
+		65A3ADB528201E1400662685 /* wp-activate.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-activate.php"; path = "src/wp-activate.php"; sourceTree = "<group>"; };
+		65A3ADB628201E1400662685 /* readme.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = readme.html; path = src/readme.html; sourceTree = "<group>"; };
+		65A3ADB728201E1400662685 /* wp-settings.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-settings.php"; path = "src/wp-settings.php"; sourceTree = "<group>"; };
+		65A3ADB828201E1400662685 /* wp-links-opml.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-links-opml.php"; path = "src/wp-links-opml.php"; sourceTree = "<group>"; };
+		65A3ADB928201E1400662685 /* index.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = index.php; path = src/index.php; sourceTree = "<group>"; };
+		65A3ADBA28201E1400662685 /* wp-signup.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = "wp-signup.php"; path = "src/wp-signup.php"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		65A3ADA128201DD000662685 = {
+			isa = PBXGroup;
+			children = (
+				65A3ADAC28201E1300662685 /* _index.php */,
+				65A3ADB928201E1400662685 /* index.php */,
+				65A3ADAE28201E1300662685 /* js */,
+				65A3ADB028201E1300662685 /* license.txt */,
+				65A3ADB628201E1400662685 /* readme.html */,
+				65A3ADB528201E1400662685 /* wp-activate.php */,
+				65A3ADAD28201E1300662685 /* wp-admin */,
+				65A3ADB428201E1400662685 /* wp-blog-header.php */,
+				65A3ADB128201E1300662685 /* wp-comments-post.php */,
+				65A3ADAA28201E1300662685 /* wp-cron.php */,
+				65A3ADAB28201E1300662685 /* wp-includes */,
+				65A3ADB828201E1400662685 /* wp-links-opml.php */,
+				65A3ADA828201E1300662685 /* wp-load.php */,
+				65A3ADA928201E1300662685 /* wp-login.php */,
+				65A3ADB328201E1400662685 /* wp-mail.php */,
+				65A3ADB728201E1400662685 /* wp-settings.php */,
+				65A3ADBA28201E1400662685 /* wp-signup.php */,
+				65A3ADAF28201E1300662685 /* wp-trackback.php */,
+				65A3ADB228201E1400662685 /* xmlrpc.php */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		65A3ADA228201DD000662685 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1330;
+			};
+			buildConfigurationList = 65A3ADA528201DD000662685 /* Build configuration list for PBXProject "WordPressOrg" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 65A3ADA128201DD000662685;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		65A3ADA628201DD000662685 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		65A3ADA728201DD000662685 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		65A3ADA528201DD000662685 /* Build configuration list for PBXProject "WordPressOrg" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				65A3ADA628201DD000662685 /* Debug */,
+				65A3ADA728201DD000662685 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 65A3ADA228201DD000662685 /* Project object */;
+}
