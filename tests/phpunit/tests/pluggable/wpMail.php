@@ -221,11 +221,14 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * @ticket 30266
 	 */
 	public function test_wp_mail_with_empty_from_header() {
+		// Make sure that we don't add any ports to the from header.
+		$url_parts = parse_url( 'http://' . WP_TESTS_DOMAIN );
+
 		$to       = 'address@tld.com';
 		$subject  = 'Testing';
 		$message  = 'Test Message';
 		$headers  = 'From: ';
-		$expected = 'From: WordPress <wordpress@' . WP_TESTS_DOMAIN . '>';
+		$expected = 'From: WordPress <wordpress@' . $url_parts['host'] . '>';
 
 		wp_mail( $to, $subject, $message, $headers );
 
@@ -477,9 +480,9 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$attachments = $mailer->getAttachments();
 
-		$this->assertTrue( $mailer->attachmentExists() );
-		$this->assertSame( $attachments[0][1], $attachments[0][2] );
-		$this->assertSame( $attachments[1][1], $attachments[1][2] );
+		$this->assertTrue( $mailer->attachmentExists(), 'There are no attachments.' );
+		$this->assertSame( $attachments[0][1], $attachments[0][2], 'The first attachment name did not match.' );
+		$this->assertSame( $attachments[1][1], $attachments[1][2], 'The second attachment name did not match.' );
 	}
 
 	/**
@@ -505,9 +508,9 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 
 		$attachments = $mailer->getAttachments();
 
-		$this->assertTrue( $mailer->attachmentExists() );
-		$this->assertSame( 'alonac.jpg', $attachments[0][2] );
-		$this->assertSame( 'selffaw.jpg', $attachments[1][2] );
+		$this->assertTrue( $mailer->attachmentExists(), 'There are no attachments.' );
+		$this->assertSame( 'alonac.jpg', $attachments[0][2], 'The first attachment name did not match.' );
+		$this->assertSame( 'selffaw.jpg', $attachments[1][2], 'The second attachment name did not match.' );
 	}
 
 	/**
@@ -538,7 +541,7 @@ class Tests_Pluggable_wpMail extends WP_UnitTestCase {
 	 * Tests that AltBody is reset between each wp_mail call.
 	 */
 	public function test_wp_mail_resets_properties() {
-		$wp_mail_set_text_message = function ( $phpmailer ) {
+		$wp_mail_set_text_message = static function ( $phpmailer ) {
 			$phpmailer->AltBody = 'user1';
 		};
 
