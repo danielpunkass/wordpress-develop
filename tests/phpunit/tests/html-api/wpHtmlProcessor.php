@@ -55,6 +55,57 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that the proper tag-name remapping happens for the `IMAGE` tag.
+	 *
+	 * An HTML parser should treat an IMAGE tag as if it were an IMG tag, but
+	 * only when found in the HTML namespace. As part of this rule, IMAGE tags
+	 * in the HTML namespace are also void elements, while those in foreign
+	 * content are not, making the self-closing flag significant.
+	 *
+	 * Example:
+	 *
+	 *     // This input...
+	 *     <image/><svg><image/></svg>
+	 *
+	 *     // ...is equivalent to this normative HTML.
+	 *     <img><svg><image/></svg>
+	 *
+	 * @ticket 61576
+	 *
+	 * @covers WP_HTML_Processor::get_tag
+	 */
+	public function test_get_tag_replaces_image_with_namespace_awareness() {
+		$processor = WP_HTML_Processor::create_fragment( '<image/><svg><image/></svg>' );
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find initial "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'HTML tags with the name "IMAGE" should be remapped to "IMG"'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find "<svg>" tag: check test setup.'
+		);
+
+		$this->assertTrue(
+			$processor->next_tag(),
+			'Could not find SVG "<image/>" tag: check test setup.'
+		);
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Should not remap "IMAGE" to "IMG" for foreign elements.'
+		);
+	}
+
+	/**
 	 * Ensures that the HTML Processor maintains its internal state through seek calls.
 	 *
 	 * Because the HTML Processor must track a stack of open elements and active formatting
@@ -693,5 +744,318 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			array( 'a', 'b', 'É', "e\u{301}", 'é' ),
 			$class_list
 		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside HTML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_html_integration_points_in_svg() {
+		$processor = WP_HTML_Processor::create_full_parser(
+			'<svg><foreignobject><image /><svg /><image />'
+		);
+
+		// At the foreignObject, the processor is in the SVG namespace.
+		$this->assertTrue(
+			$processor->next_tag( 'foreignObject' ),
+			'Failed to find "foreignObject" under test: check test setup.'
+		);
+
+		$this->assertSame(
+			'svg',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the "foreignObject" element.'
+		);
+
+		/*
+		 * The IMAGE tag should be handled according to HTML processing rules
+		 * and transformted to an IMG tag because `foreignObject` is an HTML
+		 * integration point. At this point, the processor is entering the HTML
+		 * integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		/*
+		 * Again, the IMAGE tag should be handled according to HTML processing
+		 * rules and transformted to an IMG tag because `foreignObject` is an
+		 * HTML integration point. At this point, the processor is has entered
+		 * SVG and is returning to an HTML integration point.
+		 */
+		$this->assertTrue(
+			$processor->next_tag( 'IMG' ),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor correctly adjusts the namespace
+	 * for elements inside MathML integration points.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_adjusts_for_mathml_integration_points() {
+		$processor = WP_HTML_Processor::create_fragment(
+			'<mo><image /></mo><math><image /><mo><image /></mo></math>'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		// Advance token-by-token to ensure matching the right raw "<image />" token.
+		$processor->next_token(); // Advance past the -MO.
+		$processor->next_token(); // Advance past the +MATH.
+		$processor->next_token(); // Advance into the +IMAGE.
+
+		$this->assertSame(
+			'IMAGE',
+			$processor->get_tag(),
+			'Failed to find the un-transformed "<image />" tag.'
+		);
+
+		$this->assertSame(
+			'math',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+
+		$processor->next_token(); // Advance past the +MO.
+		$processor->next_token(); // Advance into the +IMG.
+
+		$this->assertSame(
+			'IMG',
+			$processor->get_tag(),
+			'Failed to find expected "IMG" tag from "<IMAGE>" source tag.'
+		);
+
+		$this->assertSame(
+			'html',
+			$processor->get_namespace(),
+			'Found the wrong namespace for the transformed "IMAGE"/"IMG" element.'
+		);
+	}
+
+	/**
+	 * Ensures that the processor stops correctly on a FORM tag closer token.
+	 *
+	 * Form tag closers have complicated conditions. There was a bug where the processor
+	 * would not stop correctly on a FORM tag closer token. Ensure this token is reachable.
+	 *
+	 * @ticket 61576
+	 */
+	public function test_ensure_form_tag_closer_token_is_reachable() {
+		$processor = WP_HTML_Processor::create_fragment( '<form></form>' );
+
+		// Advance to </form>.
+		$processor->next_token();
+		$processor->next_token();
+
+		$this->assertSame( 'FORM', $processor->get_tag() );
+		$this->assertTrue( $processor->is_tag_closer() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_html_processor_with_extended_next_token() {
+		return array(
+			'single_instance_per_tag'   => array(
+				'html'                  => '
+					<html>
+						<head>
+							<meta charset="utf-8">
+							<title>Hello World</title>
+						</head>
+						<body>
+							<h1>Hello World!</h1>
+							<img src="example.png">
+							<p>Each tag should occur only once in this document.<!--Closing P tag omitted intentionally.-->
+							<footer>The end.</footer>
+						</body>
+					</html>
+				',
+				'expected_token_counts' => array(
+					'+HTML'    => 1,
+					'+HEAD'    => 1,
+					'#text'    => 14,
+					'+META'    => 1,
+					'+TITLE'   => 1,
+					'-HEAD'    => 1,
+					'+BODY'    => 1,
+					'+H1'      => 1,
+					'-H1'      => 1,
+					'+IMG'     => 1,
+					'+P'       => 1,
+					'#comment' => 1,
+					'-P'       => 1,
+					'+FOOTER'  => 1,
+					'-FOOTER'  => 1,
+					'-BODY'    => 1,
+					'-HTML'    => 1,
+					''         => 1,
+				),
+				'expected_xpaths'       => array(
+					0 => '/*[1][self::HTML]',
+					1 => '/*[1][self::HTML]/*[1][self::HEAD]',
+					2 => '/*[1][self::HTML]/*[1][self::HEAD]/*[1][self::META]',
+					3 => '/*[1][self::HTML]/*[1][self::HEAD]/*[2][self::TITLE]',
+					4 => '/*[1][self::HTML]/*[2][self::BODY]',
+					5 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::H1]',
+					6 => '/*[1][self::HTML]/*[2][self::BODY]/*[2][self::IMG]',
+					7 => '/*[1][self::HTML]/*[2][self::BODY]/*[3][self::P]',
+					8 => '/*[1][self::HTML]/*[2][self::BODY]/*[4][self::FOOTER]',
+				),
+			),
+
+			'multiple_tag_instances'    => array(
+				'html'                  => '
+					<html>
+						<body>
+							<h1>Hello World!</h1>
+							<p>First
+							<p>Second
+							<p>Third
+							<ul>
+								<li>1
+								<li>2
+								<li>3
+							</ul>
+						</body>
+					</html>
+				',
+				'expected_token_counts' => array(
+					'+HTML' => 1,
+					'+HEAD' => 1,
+					'-HEAD' => 1,
+					'+BODY' => 1,
+					'#text' => 13,
+					'+H1'   => 1,
+					'-H1'   => 1,
+					'+P'    => 3,
+					'-P'    => 3,
+					'+UL'   => 1,
+					'+LI'   => 3,
+					'-LI'   => 3,
+					'-UL'   => 1,
+					'-BODY' => 1,
+					'-HTML' => 1,
+					''      => 1,
+				),
+				'expected_xpaths'       => array(
+					0  => '/*[1][self::HTML]',
+					1  => '/*[1][self::HTML]/*[1][self::HEAD]',
+					2  => '/*[1][self::HTML]/*[2][self::BODY]',
+					3  => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::H1]',
+					4  => '/*[1][self::HTML]/*[2][self::BODY]/*[2][self::P]',
+					5  => '/*[1][self::HTML]/*[2][self::BODY]/*[3][self::P]',
+					6  => '/*[1][self::HTML]/*[2][self::BODY]/*[4][self::P]',
+					7  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]',
+					8  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[1][self::LI]',
+					9  => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[2][self::LI]',
+					10 => '/*[1][self::HTML]/*[2][self::BODY]/*[5][self::UL]/*[3][self::LI]',
+				),
+			),
+
+			'extreme_nested_formatting' => array(
+				'html'                  => '
+					<html>
+						<body>
+							<p>
+								<strong><em><strike><i><b><u>FORMAT</u></b></i></strike></em></strong>
+							</p>
+						</body>
+					</html>
+				',
+				'expected_token_counts' => array(
+					'+HTML'   => 1,
+					'+HEAD'   => 1,
+					'-HEAD'   => 1,
+					'+BODY'   => 1,
+					'#text'   => 7,
+					'+P'      => 1,
+					'+STRONG' => 1,
+					'+EM'     => 1,
+					'+STRIKE' => 1,
+					'+I'      => 1,
+					'+B'      => 1,
+					'+U'      => 1,
+					'-U'      => 1,
+					'-B'      => 1,
+					'-I'      => 1,
+					'-STRIKE' => 1,
+					'-EM'     => 1,
+					'-STRONG' => 1,
+					'-P'      => 1,
+					'-BODY'   => 1,
+					'-HTML'   => 1,
+					''        => 1,
+				),
+				'expected_xpaths'       => array(
+					0 => '/*[1][self::HTML]',
+					1 => '/*[1][self::HTML]/*[1][self::HEAD]',
+					2 => '/*[1][self::HTML]/*[2][self::BODY]',
+					3 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]',
+					4 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]',
+					5 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]',
+					6 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]',
+					7 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]',
+					8 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]/*[1][self::B]',
+					9 => '/*[1][self::HTML]/*[2][self::BODY]/*[1][self::P]/*[1][self::STRONG]/*[1][self::EM]/*[1][self::STRIKE]/*[1][self::I]/*[1][self::B]/*[1][self::U]',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Ensures that subclasses to WP_HTML_Processor can do bookkeeping by extending the next_token() method.
+	 *
+	 * @ticket ?
+	 * @dataProvider data_html_processor_with_extended_next_token
+	 */
+	public function test_ensure_next_token_method_extensibility( $html, $expected_token_counts, $expected_xpaths ) {
+		require_once DIR_TESTDATA . '/html-api/html-xpath-generating-processor.php';
+
+		$processor     = HTML_XPath_Generating_Processor::create_full_parser( $html );
+		$actual_xpaths = array();
+		while ( $processor->next_tag() ) {
+			if ( ! $processor->is_tag_closer() ) {
+				$processor->set_attribute( 'xpath', $processor->get_xpath() );
+				$actual_xpaths[] = $processor->get_xpath();
+			}
+		}
+
+		$this->assertEquals( $expected_token_counts, $processor->token_seen_count, 'Snapshot: ' . var_export( $processor->token_seen_count, true ) );
+		$this->assertEquals( $expected_xpaths, $actual_xpaths, 'Snapshot: ' . var_export( $actual_xpaths, true ) );
 	}
 }
