@@ -957,7 +957,14 @@ function do_enclose( $content, $post ) {
 
 		if ( '' !== $url && ! $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM $wpdb->postmeta WHERE post_id = %d AND meta_key = 'enclosure' AND meta_value LIKE %s", $post->ID, $wpdb->esc_like( $url ) . '%' ) ) ) {
 
-			$headers = wp_get_http_headers( $url );
+			/*
+			 * Media is often served from a host that redirects to a CDN, and HEAD requests
+			 * do not follow redirects by default. Ask for the headers of the file itself,
+			 * otherwise no Content-Length is returned and the enclosure records a length of 0.
+			 */
+			$response = wp_safe_remote_head( $url, array( 'redirection' => 5 ) );
+			$headers  = is_wp_error( $response ) ? false : wp_remote_retrieve_headers( $response );
+
 			if ( $headers ) {
 				$len           = (int) ( $headers['Content-Length'] ?? 0 );
 				$type          = $headers['Content-Type'] ?? '';
