@@ -977,8 +977,11 @@ function do_enclose( $content, $post ) {
 					}
 				}
 
+				// A Content-Type header may carry parameters, e.g. "audio/mpeg; charset=utf-8".
+				$type = trim( explode( ';', $type )[0] );
+
 				if ( in_array( substr( $type, 0, strpos( $type, '/' ) ), $allowed_types, true ) ) {
-					add_post_meta( $post->ID, 'enclosure', "$url\n$len\n$mime\n" );
+					add_post_meta( $post->ID, 'enclosure', "$url\n$len\n$type\n" );
 				}
 			}
 		}
